@@ -1,0 +1,9 @@
+<jmix = 'http://www.jahia.org/jahia/mix/1.0'>
+<jnt = 'http://www.jahia.org/jahia/nt/1.0'>
+<mix = 'http://www.jcp.org/jcr/mix/1.0'>
+
+[jnt:authConnectorSiteSettings] > jnt:content, jmix:siteComponent, jmix:studioOnly
+
+[jmix:authConnectorSettingView] > jmix:siteComponent, jmix:studioOnly mixin
+
+[jmix:authMapperSettingView] > jmix:siteComponent, jmix:studioOnly mixin

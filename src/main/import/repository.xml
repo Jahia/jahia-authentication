@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<content xmlns:j="http://www.jahia.org/jahia/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0">
+    <modules jcr:primaryType="jnt:modules">
+        <jahia-authentication j:dependencies="default"
+                              j:modulePriority="0"
+                              j:moduleType="module"
+                              j:title="Jahia OAuth"
+                              jcr:primaryType="jnt:module">
+
+            <portlets jcr:primaryType="jnt:portletFolder"/>
+            <files jcr:primaryType="jnt:folder"/>
+            <contents jcr:primaryType="jnt:contentFolder"/>
+            <templates j:rootTemplatePath="/base" jcr:primaryType="jnt:templatesFolder">
+                <files jcr:primaryType="jnt:folder">
+                    <auth_16x16_logo.png j:height="16"
+                                         j:width="16"
+                                         jcr:mixinTypes="jmix:image"
+                                         jcr:primaryType="jnt:file">
+                        <jcr:content jcr:mimeType="image/png" jcr:primaryType="jnt:resource"/>
+                        <thumbnail jcr:mimeType="image/png" jcr:primaryType="jnt:resource"/>
+                        <thumbnail2 jcr:mimeType="image/png" jcr:primaryType="jnt:resource"/>
+                    </auth_16x16_logo.png>
+                </files>
+                <contents jcr:primaryType="jnt:contentFolder"/>
+                <site-settings-base j:view="siteSettings"
+                                    jcr:mixinTypes="jmix:useUILocale"
+                                    jcr:primaryType="jnt:template">
+                    <auth-connector-site-settings j:applyOn="jnt:virtualsite"
+                                                  j:defaultTemplate="false"
+                                                  j:hiddenTemplate="false"
+                                                  j:icon="/modules/jahia-authentication/templates/files/oauth_16x16_logo.png"
+                                                  j:requiredPermissionNames="canSetupJahiaOAuth"
+                                                  j:titleKey="jnt_authConnectorSiteSettings"
+                                                  j:view="authSettings"
+                                                  jcr:mixinTypes="jmix:rbTitle"
+                                                  jcr:primaryType="jnt:contentTemplate">
+                        <pagecontent jcr:primaryType="jnt:contentList">
+                            <authconnectorsitesettings jcr:primaryType="jnt:authConnectorSiteSettings"/>
+                        </pagecontent>
+                    </auth-connector-site-settings>
+                </site-settings-base>
+            </templates>
+        </jahia-authentication>
+    </modules>
+</content>

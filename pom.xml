@@ -66,7 +66,7 @@
     </scm>
 
     <properties>
-        <export-package>org.jahia.modules.jahiaauth.service,org.jahia.modules.jahiaauth.decorator,org.jahia.modules.jahiaauth.action</export-package>
+        <export-package>org.jahia.modules.jahiaauth.service,org.jahia.modules.jahiaauth.action,org.jahia.modules.jahiaauth.tag</export-package>
         <jahia-static-resources>/css,/javascript,/icons</jahia-static-resources>
         <require-capability>osgi.extender;filter:="(osgi.extender=org.jahia.bundles.blueprint.extender.config)"</require-capability>
         <jahia-module-signature>MCwCFD3g3rcsEt0cVepH+/5b+YHfzgmZAhRJwO6Et18i6C//2QSk6AEBfJtiCA==</jahia-module-signature>
@@ -142,6 +142,21 @@
 
     <build>
         <plugins>
+            <plugin>
+                <artifactId>jahia-maven-plugin</artifactId>
+                <groupId>org.jahia.server</groupId>
+                <executions>
+                    <execution>
+                        <id>i18n2js</id>
+                        <goals>
+                            <goal>javascript-dictionary</goal>
+                        </goals>
+                        <configuration>
+                            <dictionaryName>auth_i18n</dictionaryName>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>

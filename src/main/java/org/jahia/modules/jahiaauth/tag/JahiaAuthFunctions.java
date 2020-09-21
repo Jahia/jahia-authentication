@@ -41,37 +41,34 @@
  *     If you are unsure which license is appropriate for your use,
  *     please contact the sales department at sales@jahia.com.
  */
-package org.jahia.modules.jahiaauth.service;
+package org.jahia.modules.jahiaauth.tag;
+
+import org.apache.commons.lang.StringUtils;
+import org.jahia.api.templates.JahiaTemplateManagerService;
+import org.jahia.data.templates.JahiaTemplatesPackage;
+import org.jahia.exceptions.JahiaException;
+
+import java.util.List;
 
 /**
- * Constants use across the application
- *
  * @author dgaillard
  */
-public class JahiaAuthConstants {
-    public static final String JAHIA_AUTH_USER_CACHE = "JahiaAuthUserCache";
-    public static final String SSO_LOGIN = "ssoLoginId";
-    public static final String SITE_KEY = "siteKey";
-    public static final String MAPPER_SERVICE_NAME = "mapperServiceName";
-    public static final String MAPPERS_NODE_NAME = "mappers";
+public class JahiaAuthFunctions {
+    private static JahiaTemplateManagerService jahiaTemplateManagerService;
 
-    public static final String PROPERTY_IS_ENABLED = "enabled";
+    public static Boolean isModuleActiveOnSite(String siteKey, String path) throws JahiaException {
+        List<JahiaTemplatesPackage> jahiaTemplatesPackageList = jahiaTemplateManagerService.getInstalledModulesForSite(siteKey, false, true,false);
 
-    public static final String PROPERTY_MAPPING = "mapping";
-    public static final String PROPERTY_NAME = "name";
-    public static final String PROPERTY_MANDATORY = "mandatory";
-    public static final String PROPERTY_SITE_KEY = "siteKey";
-    public static final String PROPERTY_VALUE_FORMAT = "valueFormat";
-    public static final String PROPERTY_VALUE_TYPE = "valueType";
-    public static final String PROPERTY_VALUE = "value";
+        for (JahiaTemplatesPackage jahiaTemplatesPackage : jahiaTemplatesPackageList) {
+            if (StringUtils.startsWith(path, jahiaTemplatesPackage.getRootFolderPath() + "/" + jahiaTemplatesPackage.getVersion())) {
+                return true;
+            }
+        }
 
-    public static final String CONNECTOR_NAME_AND_ID = "connectorNameAndID";
-    public static final String PROPERTIES = "properties";
-    public static final String METHOD_GET = "GET";
-    public static final String CONNECTOR_SERVICE_NAME = "connectorServiceName";
-    public static final String CONNECTOR = "connector";
-    public static final String MAPPER = "mapper";
+        return false;
+    }
 
-    private JahiaAuthConstants() {
+    public void setJahiaTemplateManagerService(JahiaTemplateManagerService jahiaTemplateManagerService) {
+        this.jahiaTemplateManagerService = jahiaTemplateManagerService;
     }
 }

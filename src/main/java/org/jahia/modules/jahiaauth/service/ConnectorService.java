@@ -43,35 +43,48 @@
  */
 package org.jahia.modules.jahiaauth.service;
 
+import java.io.IOException;
+import java.util.List;
+
 /**
- * Constants use across the application
+ * Service to be implemented by a connector to allow Jahia OAuth to work
  *
  * @author dgaillard
  */
-public class JahiaAuthConstants {
-    public static final String JAHIA_AUTH_USER_CACHE = "JahiaAuthUserCache";
-    public static final String SSO_LOGIN = "ssoLoginId";
-    public static final String SITE_KEY = "siteKey";
-    public static final String MAPPER_SERVICE_NAME = "mapperServiceName";
-    public static final String MAPPERS_NODE_NAME = "mappers";
+public interface ConnectorService {
+    /**
+     * This method get the connector service name
+     *
+     * @return String connector service name
+     */
+    String getServiceName();
 
-    public static final String PROPERTY_IS_ENABLED = "enabled";
+    /**
+     * This method return the url that will allow Jahia OAuth to get the user data
+     *
+     * @return String url to request to get the user data
+     */
+    String getProtectedResourceUrl();
 
-    public static final String PROPERTY_MAPPING = "mapping";
-    public static final String PROPERTY_NAME = "name";
-    public static final String PROPERTY_MANDATORY = "mandatory";
-    public static final String PROPERTY_SITE_KEY = "siteKey";
-    public static final String PROPERTY_VALUE_FORMAT = "valueFormat";
-    public static final String PROPERTY_VALUE_TYPE = "valueType";
-    public static final String PROPERTY_VALUE = "value";
+    /**
+     * This method get the list of available properties with this connector
+     *
+     * @return List the list of available properties
+     */
+    List<ConnectorPropertyInfo> getAvailableProperties();
 
-    public static final String CONNECTOR_NAME_AND_ID = "connectorNameAndID";
-    public static final String PROPERTIES = "properties";
-    public static final String METHOD_GET = "GET";
-    public static final String CONNECTOR_SERVICE_NAME = "connectorServiceName";
-    public static final String CONNECTOR = "connector";
-    public static final String MAPPER = "mapper";
+    void validateSettings(ConnectorConfig settings) throws IOException;
 
-    private JahiaAuthConstants() {
+    /**
+     * Nested interface implemented by FranceConnect connector to allow Jahia OAuth
+     * to work with the right mode
+     */
+    interface DevMode {
+        /**
+         * This method return a boolean value that will allow to use the right URL
+         *
+         * @return boolean value
+         */
+        boolean isDevMode();
     }
 }
