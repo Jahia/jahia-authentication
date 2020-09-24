@@ -29,7 +29,7 @@
                                                   j:defaultTemplate="false"
                                                   j:hiddenTemplate="false"
                                                   j:icon="/modules/jahia-authentication/templates/files/oauth_16x16_logo.png"
-                                                  j:requiredPermissionNames="canSetupJahiaOAuth"
+                                                  j:requiredPermissionNames="canSetupJahiaAuth"
                                                   j:titleKey="jnt_authConnectorSiteSettings"
                                                   j:view="authSettings"
                                                   jcr:mixinTypes="jmix:rbTitle"
