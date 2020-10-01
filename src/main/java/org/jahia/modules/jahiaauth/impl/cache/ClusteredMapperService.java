@@ -46,7 +46,6 @@ package org.jahia.modules.jahiaauth.impl.cache;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.nio.ClassLoaderUtil;
 import org.apache.commons.lang.StringUtils;
 import org.jahia.modules.jahiaauth.service.JahiaAuthConstants;
 import org.jahia.modules.jahiaauth.service.MappedProperty;
