@@ -46,9 +46,11 @@ package org.jahia.modules.jahiaauth.impl.cache;
 import com.hazelcast.config.Config;
 import com.hazelcast.config.MapConfig;
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.nio.ClassLoaderUtil;
 import org.apache.commons.lang.StringUtils;
 import org.jahia.modules.jahiaauth.service.JahiaAuthConstants;
 import org.jahia.modules.jahiaauth.service.MappedProperty;
+import org.jahia.utils.ClassLoaderUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -91,7 +93,9 @@ public class ClusteredMapperService implements CacheService {
             String keyAsString = (String) key;
             if (StringUtils.endsWith(keyAsString, sessionId)) {
                 String mapper = StringUtils.substringBefore(keyAsString, "_" + sessionId);
-                Map<String, MappedProperty> mapperResult = (Map<String, MappedProperty>) hazelcastInstance.getMap(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE).get(key);
+                Map<String, MappedProperty> mapperResult = ClassLoaderUtils.executeWith(ClusteredMapperService.class.getClassLoader(), () ->
+                    (Map<String, MappedProperty>) hazelcastInstance.getMap(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE).get(key)
+                );
                 res.put(mapper, mapperResult);
             }
         }
@@ -104,9 +108,12 @@ public class ClusteredMapperService implements CacheService {
             String keyAsString = (String) key;
             if (StringUtils.endsWith(keyAsString, originalSessionId)) {
                 String newKey = StringUtils.substringBefore(keyAsString, originalSessionId) + newSessionId;
-                Map<String, Object> mapperResult = (Map<String, Object>) hazelcastInstance.getMap(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE).get(key);
-                hazelcastInstance.getMap(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE).remove(key);
-                hazelcastInstance.getMap(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE).set(newKey, mapperResult);
+                ClassLoaderUtils.executeWith(ClusteredMapperService.class.getClassLoader(), () -> {
+                    Map<String, MappedProperty> mapperResult = (Map<String, MappedProperty>) hazelcastInstance.getMap(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE).get(key);
+                    hazelcastInstance.getMap(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE).remove(key);
+                    hazelcastInstance.getMap(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE).set(newKey, mapperResult);
+                    return null;
+                });
             }
         }
     }
