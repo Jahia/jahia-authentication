@@ -52,7 +52,7 @@ public class ConnectorConfig {
                 mappingsMap.put(mapping.getMappedProperty(), mapping);
             }
 
-            MapperConfig mapperConfig = new MapperConfig(subValueKey);
+            MapperConfig mapperConfig = new MapperConfig(subValueKey, mapper);
             mapperConfig.setSiteKey(settings.getSiteKey());
             mapperConfig.setActive(mapper.getBooleanProperty(JahiaAuthConstants.PROPERTY_IS_ENABLED));
             mapperConfig.getMappings().addAll(mappingsMap.values());

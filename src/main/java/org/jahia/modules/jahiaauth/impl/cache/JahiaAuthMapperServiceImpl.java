@@ -102,7 +102,7 @@ public class JahiaAuthMapperServiceImpl implements JahiaAuthMapperService {
         Mapper mapper = BundleUtils.getOsgiService(Mapper.class, "(" + JahiaAuthConstants.MAPPER_SERVICE_NAME + "=" + mapperConfig.getMapperName() + ")");
         Map<String, MappedProperty> mapperResult = getMapperResults(connectorProperties, mapper, mapperConfig);
         if (mapper != null) {
-            mapper.executeMapper(mapperResult);
+            mapper.executeMapper(mapperResult, mapperConfig);
         }
         cacheMapperResults(mapperConfig.getMapperName(), sessionId, mapperResult);
     }

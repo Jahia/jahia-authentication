@@ -61,6 +61,7 @@ public interface Mapper {
     /**
      * This method is called by JahiaAuthService once the authentication process is done and we have the results so the mapper can use the results
      * @param mapperResult
+     * @param config
      */
-    void executeMapper(Map<String, MappedProperty> mapperResult);
+    void executeMapper(Map<String, MappedProperty> mapperResult, MapperConfig config);
 }
