@@ -99,9 +99,9 @@ public class ManageConnectorsSettings extends Action {
 
             for (String property : parameters.get(JahiaAuthConstants.PROPERTIES)) {
                 if (!v.getListProperty(property).isEmpty()) {
-                    JSONArray callbackUrls = new JSONArray();
-                    v.getListProperty(property).forEach(callbackUrls::put);
-                    response.put(property, callbackUrls);
+                    JSONArray array = new JSONArray();
+                    v.getListProperty(property).forEach(array::put);
+                    response.put(property, array);
                 } else if (v.getProperty(property) != null) {
                     if (property.equals(JahiaAuthConstants.PROPERTY_IS_ENABLED)) {
                         response.put(property, Boolean.valueOf(v.getProperty(property)));
