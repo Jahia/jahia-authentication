@@ -18,7 +18,6 @@ import org.jahia.services.preferences.user.UserPreferencesHelper;
 import org.jahia.services.usermanager.JahiaUser;
 import org.jahia.utils.LanguageCodeConverters;
 import org.jahia.utils.Patterns;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,7 +137,6 @@ public class SSOValve extends BaseAuthValve {
         FrameworkService.sendEvent("org/jahia/usersgroups/login/LOGIN", m, false);
     }
 
-    @Nullable
     private String findUserId(Map<String, Map<String, MappedProperty>> allMapperResult) {
         for (Map<String, MappedProperty> mapperResult : allMapperResult.values()) {
             if (mapperResult.containsKey(JahiaAuthConstants.SSO_LOGIN)) {

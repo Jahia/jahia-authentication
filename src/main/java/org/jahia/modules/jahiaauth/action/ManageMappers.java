@@ -43,6 +43,7 @@
  */
 package org.jahia.modules.jahiaauth.action;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jahia.bin.Action;
 import org.jahia.bin.ActionResult;
 import org.jahia.modules.jahiaauth.impl.SettingsServiceImpl;
@@ -53,11 +54,14 @@ import org.jahia.services.render.RenderContext;
 import org.jahia.services.render.Resource;
 import org.jahia.services.render.URLResolver;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -66,6 +70,7 @@ import java.util.stream.Collectors;
  * @author dgaillard
  */
 public class ManageMappers extends Action {
+    public static final String ERROR = "error";
     private SettingsService settingsService;
 
     @Override
@@ -73,74 +78,119 @@ public class ManageMappers extends Action {
                                   JCRSessionWrapper session, Map<String, List<String>> parameters,
                                   URLResolver urlResolver) throws Exception {
         String action = parameters.get("action").get(0);
-        String connectorServiceName;
-        String mapperServiceName;
-        JSONObject response = new JSONObject();
         if (action.equals("getConnectorProperties")) {
-            connectorServiceName = parameters.get(JahiaAuthConstants.CONNECTOR_SERVICE_NAME).get(0);
-            ConnectorService connectorService = BundleUtils.getOsgiService(ConnectorService.class, "(" + JahiaAuthConstants.CONNECTOR_SERVICE_NAME + "=" + connectorServiceName + ")");
-            if (connectorService == null) {
-                response.put("error", "Cannot find connector");
-                return new ActionResult(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, null, response);
-            }
-            response.put("connectorProperties", new JSONArray(connectorService.getAvailableProperties().stream().map(JSONObject::new).collect(Collectors.toList())));
+            return getConnectorProperties(parameters);
         } else if (action.equals("getMapperProperties")) {
-            mapperServiceName = parameters.get(JahiaAuthConstants.MAPPER_SERVICE_NAME).get(0);
-            Mapper mapperService = BundleUtils.getOsgiService(Mapper.class, "(" + JahiaAuthConstants.MAPPER_SERVICE_NAME + "=" + mapperServiceName + ")");
-            if (mapperService == null) {
-                response.put("error", "Cannot find connector");
-                return new ActionResult(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, null, response);
-            }
-            response.put("mapperProperties", new JSONArray(mapperService.getProperties().stream().map(JSONObject::new).collect(Collectors.toList())));
+            return getMapperProperties(parameters);
         } else if (action.equals("getMapperMapping")) {
-            if (!parameters.containsKey(JahiaAuthConstants.MAPPER_SERVICE_NAME)
-                    || !parameters.containsKey(JahiaAuthConstants.CONNECTOR_SERVICE_NAME)) {
-                response.put("error", "required properties are missing in the request");
-                return new ActionResult(HttpServletResponse.SC_BAD_REQUEST, null, response);
-            }
-
-            connectorServiceName = parameters.get(JahiaAuthConstants.CONNECTOR_SERVICE_NAME).get(0);
-            mapperServiceName = parameters.get(JahiaAuthConstants.MAPPER_SERVICE_NAME).get(0);
-
-            Settings settings = settingsService.getSettings(renderContext.getSite().getSiteKey());
-            Settings.Values mapperNode = settings.getValues(connectorServiceName).getSubValues(JahiaAuthConstants.MAPPERS_NODE_NAME).getSubValues(mapperServiceName);
-
-            if (mapperNode.isEmpty()) {
-                return new ActionResult(HttpServletResponse.SC_OK, null, response);
-            }
-
-            JSONArray jsonArrayMapping = new JSONArray(mapperNode.getProperty(JahiaAuthConstants.PROPERTY_MAPPING));
-            response.put(JahiaAuthConstants.PROPERTY_IS_ENABLED, mapperNode.getBooleanProperty(JahiaAuthConstants.PROPERTY_IS_ENABLED));
-            response.put(JahiaAuthConstants.PROPERTY_MAPPING, jsonArrayMapping);
-
+            return getMapperMapping(renderContext, parameters);
         } else if (action.equals("setMapperMapping")) {
-            if (!parameters.containsKey(JahiaAuthConstants.PROPERTY_IS_ENABLED)
-                    || !parameters.containsKey(JahiaAuthConstants.MAPPER_SERVICE_NAME)
-                    || !parameters.containsKey(JahiaAuthConstants.CONNECTOR_SERVICE_NAME)) {
-                response.put("error", "required properties are missing in the request");
-                return new ActionResult(HttpServletResponse.SC_BAD_REQUEST, null, response);
-            }
-
-            connectorServiceName = parameters.get(JahiaAuthConstants.CONNECTOR_SERVICE_NAME).get(0);
-            mapperServiceName = parameters.get(JahiaAuthConstants.MAPPER_SERVICE_NAME).get(0);
-            boolean enabled = Boolean.parseBoolean(parameters.get(JahiaAuthConstants.PROPERTY_IS_ENABLED).get(0));
-            if (enabled && !parameters.containsKey(JahiaAuthConstants.PROPERTY_MAPPING)) {
-                response.put("error", "mapping is missing");
-                return new ActionResult(HttpServletResponse.SC_BAD_REQUEST, null, response);
-            }
-
-            Settings settings = settingsService.getSettings(renderContext.getSite().getSiteKey());
-
-            List<String> mapping = (parameters.containsKey(JahiaAuthConstants.PROPERTY_MAPPING))?parameters.get(JahiaAuthConstants.PROPERTY_MAPPING):new ArrayList<String>();
-
-            Settings.Values mappersNode = settings.getValues(connectorServiceName).getSubValues(JahiaAuthConstants.MAPPERS_NODE_NAME).getSubValues(mapperServiceName);
-
-            mappersNode.setProperty(JahiaAuthConstants.PROPERTY_IS_ENABLED, enabled);
-            mappersNode.setProperty(JahiaAuthConstants.PROPERTY_MAPPING, mapping.toString());
-
-            settingsService.storeSettings(settings);
+            return setMapperMapping(renderContext, parameters);
         }
 
+        return new ActionResult(HttpServletResponse.SC_OK, null, new JSONObject());
+    }
+
+    private ActionResult setMapperMapping(RenderContext renderContext, Map<String, List<String>> parameters) throws JSONException, IOException {
+        JSONObject response = new JSONObject();
+        if (!parameters.containsKey(JahiaAuthConstants.PROPERTIES)
+                || !parameters.containsKey(JahiaAuthConstants.MAPPER_SERVICE_NAME)
+                || !parameters.containsKey(JahiaAuthConstants.CONNECTOR_SERVICE_NAME)) {
+            response.put(ERROR, "required properties are missing in the request");
+            return new ActionResult(HttpServletResponse.SC_BAD_REQUEST, null, response);
+        }
+
+        String connectorServiceName = parameters.get(JahiaAuthConstants.CONNECTOR_SERVICE_NAME).get(0);
+        String mapperServiceName = parameters.get(JahiaAuthConstants.MAPPER_SERVICE_NAME).get(0);
+        Map<String, Object> properties = new ObjectMapper().readValue(parameters.get(JahiaAuthConstants.PROPERTIES).get(0), HashMap.class);
+
+        boolean enabled = (boolean) properties.get(JahiaAuthConstants.PROPERTY_IS_ENABLED);
+        if (enabled && !parameters.containsKey(JahiaAuthConstants.PROPERTY_MAPPING)) {
+            response.put(ERROR, "mapping is missing");
+            return new ActionResult(HttpServletResponse.SC_BAD_REQUEST, null, response);
+        }
+
+        Settings settings = settingsService.getSettings(renderContext.getSite().getSiteKey());
+
+        List<String> mapping = (parameters.containsKey(JahiaAuthConstants.PROPERTY_MAPPING))? parameters.get(JahiaAuthConstants.PROPERTY_MAPPING):new ArrayList<String>();
+
+        Settings.Values mappersNode = settings.getValues(connectorServiceName).getSubValues(JahiaAuthConstants.MAPPERS_NODE_NAME).getSubValues(mapperServiceName);
+
+        mappersNode.setProperty(JahiaAuthConstants.PROPERTY_MAPPING, mapping.toString());
+        for (Map.Entry<String, Object> entry : properties.entrySet()) {
+            if (entry.getValue() instanceof List) {
+                mappersNode.setListProperty(entry.getKey(), (List) entry.getValue());
+            } else {
+                mappersNode.setProperty(entry.getKey(), entry.getValue().toString());
+            }
+        }
+
+        settingsService.storeSettings(settings);
+        return new ActionResult(HttpServletResponse.SC_OK, null, response);
+    }
+
+    private ActionResult getMapperMapping(RenderContext renderContext, Map<String, List<String>> parameters) throws JSONException {
+        JSONObject response = new JSONObject();
+        if (!parameters.containsKey(JahiaAuthConstants.MAPPER_SERVICE_NAME)
+                || !parameters.containsKey(JahiaAuthConstants.CONNECTOR_SERVICE_NAME)) {
+            response.put(ERROR, "required properties are missing in the request");
+            return new ActionResult(HttpServletResponse.SC_BAD_REQUEST, null, response);
+        }
+
+        String connectorServiceName = parameters.get(JahiaAuthConstants.CONNECTOR_SERVICE_NAME).get(0);
+        String mapperServiceName = parameters.get(JahiaAuthConstants.MAPPER_SERVICE_NAME).get(0);
+
+        Settings settings = settingsService.getSettings(renderContext.getSite().getSiteKey());
+        Settings.Values mapperNode = settings.getValues(connectorServiceName).getSubValues(JahiaAuthConstants.MAPPERS_NODE_NAME).getSubValues(mapperServiceName);
+
+        if (mapperNode.isEmpty()) {
+            return new ActionResult(HttpServletResponse.SC_OK, null, response);
+        }
+
+        JSONArray jsonArrayMapping = new JSONArray(mapperNode.getProperty(JahiaAuthConstants.PROPERTY_MAPPING));
+        response.put(JahiaAuthConstants.PROPERTY_IS_ENABLED, mapperNode.getBooleanProperty(JahiaAuthConstants.PROPERTY_IS_ENABLED));
+        response.put(JahiaAuthConstants.PROPERTY_MAPPING, jsonArrayMapping);
+
+        if (parameters.get(JahiaAuthConstants.PROPERTIES) != null) {
+            for (String property : parameters.get(JahiaAuthConstants.PROPERTIES)) {
+                if (!mapperNode.getListProperty(property).isEmpty()) {
+                    JSONArray array = new JSONArray();
+                    mapperNode.getListProperty(property).forEach(array::put);
+                    response.put(property, array);
+                } else if (mapperNode.getProperty(property) != null) {
+                    if (property.equals(JahiaAuthConstants.PROPERTY_IS_ENABLED)) {
+                        response.put(property, Boolean.valueOf(mapperNode.getProperty(property)));
+                    } else {
+                        response.put(property, mapperNode.getProperty(property));
+                    }
+                }
+            }
+        }
+
+        return new ActionResult(HttpServletResponse.SC_OK, null, response);
+    }
+
+    private ActionResult getMapperProperties(Map<String, List<String>> parameters) throws JSONException {
+        JSONObject response = new JSONObject();
+        String mapperServiceName = parameters.get(JahiaAuthConstants.MAPPER_SERVICE_NAME).get(0);
+        Mapper mapperService = BundleUtils.getOsgiService(Mapper.class, "(" + JahiaAuthConstants.MAPPER_SERVICE_NAME + "=" + mapperServiceName + ")");
+        if (mapperService == null) {
+            response.put(ERROR, "Cannot find connector");
+            return new ActionResult(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, null, response);
+        }
+        response.put("mapperProperties", new JSONArray(mapperService.getProperties().stream().map(JSONObject::new).collect(Collectors.toList())));
+        return new ActionResult(HttpServletResponse.SC_OK, null, response);
+    }
+
+    private ActionResult getConnectorProperties(Map<String, List<String>> parameters) throws JSONException {
+        JSONObject response = new JSONObject();
+        String connectorServiceName = parameters.get(JahiaAuthConstants.CONNECTOR_SERVICE_NAME).get(0);
+        ConnectorService connectorService = BundleUtils.getOsgiService(ConnectorService.class, "(" + JahiaAuthConstants.CONNECTOR_SERVICE_NAME + "=" + connectorServiceName + ")");
+        if (connectorService == null) {
+            response.put(ERROR, "Cannot find connector");
+            return new ActionResult(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, null, response);
+        }
+        response.put("connectorProperties", new JSONArray(connectorService.getAvailableProperties().stream().map(JSONObject::new).collect(Collectors.toList())));
         return new ActionResult(HttpServletResponse.SC_OK, null, response);
     }
 

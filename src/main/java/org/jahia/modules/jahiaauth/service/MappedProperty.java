@@ -5,7 +5,7 @@ import java.io.Serializable;
 public class MappedProperty implements Serializable {
 
     private MappedPropertyInfo info;
-    private Object value;
+    private Serializable value;
 
     public MappedPropertyInfo getInfo() {
         return info;
@@ -20,13 +20,11 @@ public class MappedProperty implements Serializable {
     }
 
     public void setValue(Object value) {
-        this.value = value;
+        this.value = (Serializable) value;
     }
 
     public MappedProperty(MappedPropertyInfo info, Object value) {
-
-
         this.info = info;
-        this.value = value;
+        this.value = (Serializable) value;
     }
 }
