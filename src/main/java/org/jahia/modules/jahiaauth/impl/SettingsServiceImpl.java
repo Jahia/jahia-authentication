@@ -1,6 +1,7 @@
 package org.jahia.modules.jahiaauth.impl;
 
 import org.jahia.modules.jahiaauth.service.ConnectorConfig;
+import org.jahia.modules.jahiaauth.service.JahiaAuthConstants;
 import org.jahia.modules.jahiaauth.service.Settings;
 import org.jahia.modules.jahiaauth.service.SettingsService;
 import org.jahia.settings.SettingsBean;
@@ -122,7 +123,7 @@ public class SettingsServiceImpl implements SettingsService, ManagedServiceFacto
 
     private void setProperties(Settings settings, Dictionary<String, Object> properties, BufferedWriter writer) throws IOException {
         Map<String, String> p = new TreeMap<>(settings.getProperties());
-        setProperty(properties, writer, "siteKey", p.remove("siteKey"));
+        setProperty(properties, writer, JahiaAuthConstants.SITE_KEY, p.remove(JahiaAuthConstants.SITE_KEY));
         for (Map.Entry<String, String> entry : p.entrySet()) {
             setProperty(properties, writer, entry.getKey(), entry.getValue());
         }
@@ -142,7 +143,7 @@ public class SettingsServiceImpl implements SettingsService, ManagedServiceFacto
         try {
             Configuration[] configurations = configurationAdmin.listConfigurations("(service.factoryPid=org.jahia.modules.auth)");
             for (Configuration configuration : configurations) {
-                if (siteKey.equals(configuration.getProperties().get("siteKey"))) {
+                if (siteKey.equals(configuration.getProperties().get(JahiaAuthConstants.SITE_KEY))) {
                     return configuration;
                 }
             }

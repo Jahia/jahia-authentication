@@ -69,6 +69,6 @@ public class JahiaAuthFunctions {
     }
 
     public void setJahiaTemplateManagerService(JahiaTemplateManagerService jahiaTemplateManagerService) {
-        this.jahiaTemplateManagerService = jahiaTemplateManagerService;
+        JahiaAuthFunctions.jahiaTemplateManagerService = jahiaTemplateManagerService;
     }
 }

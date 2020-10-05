@@ -61,11 +61,13 @@ import org.jahia.services.render.Resource;
 import org.jahia.services.render.URLResolver;
 import org.jahia.tools.files.FileUpload;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,98 +76,111 @@ import java.util.Map;
  * @author dgaillard
  */
 public class ManageConnectorsSettings extends Action {
+    public static final String ERROR = "error";
+    public static final String REQUIRED_PROPERTIES_ARE_MISSING_IN_THE_REQUEST = "required properties are missing in the request";
     private static final Logger logger = LoggerFactory.getLogger(ManageConnectorsSettings.class);
     private SettingsServiceImpl settingsService;
 
     @Override
     public ActionResult doExecute(HttpServletRequest req, RenderContext renderContext, Resource resource, JCRSessionWrapper session, Map<String, List<String>> parameters, URLResolver urlResolver) throws Exception {
-
-        JSONObject response = new JSONObject();
         // Get registered data
         if (req.getMethod().equals(JahiaAuthConstants.METHOD_GET)) {
-            if (!parameters.containsKey(JahiaAuthConstants.CONNECTOR_SERVICE_NAME) || !parameters.containsKey(JahiaAuthConstants.PROPERTIES) || parameters.get(JahiaAuthConstants.PROPERTIES).isEmpty()) {
-                response.put("error", "required properties are missing in the request");
-                return new ActionResult(HttpServletResponse.SC_BAD_REQUEST, null, response);
-            }
-
-            String nodeName = parameters.get(JahiaAuthConstants.CONNECTOR_SERVICE_NAME).get(0);
-
-            String siteKey = renderContext.getSite().getSiteKey();
-            Settings settings = settingsService.getSettings(siteKey);
-            Settings.Values v = settings.getValues(nodeName);
-            if (v.isEmpty()) {
-                return new ActionResult(HttpServletResponse.SC_NO_CONTENT, null, response);
-            }
-
-            for (String property : parameters.get(JahiaAuthConstants.PROPERTIES)) {
-                if (!v.getListProperty(property).isEmpty()) {
-                    JSONArray callbackUrls = new JSONArray();
-                    v.getListProperty(property).forEach(callbackUrls::put);
-                    response.put(property, callbackUrls);
-                } else if (v.getProperty(property) != null) {
-                    if (property.equals(JahiaAuthConstants.PROPERTY_IS_ENABLED)) {
-                        response.put(property, Boolean.valueOf(v.getProperty(property)));
-                    } else {
-                        response.put(property, v.getProperty(property));
-                    }
-                }
-            }
+            return getSettings(renderContext, parameters);
+        } else {
+            return updateData(req, renderContext, parameters);
         }
-        // Register or update data
-        else {
-            if (!parameters.containsKey(JahiaAuthConstants.CONNECTOR_SERVICE_NAME) || !parameters.containsKey(JahiaAuthConstants.PROPERTIES) || parameters.get(JahiaAuthConstants.PROPERTIES).isEmpty()) {
-                response.put("error", "required properties are missing in the request");
-                return new ActionResult(HttpServletResponse.SC_BAD_REQUEST, null, response);
-            }
+    }
 
-            try {
-                String connectorServiceName = parameters.get(JahiaAuthConstants.CONNECTOR_SERVICE_NAME).get(0);
-                ConnectorService connectorService = BundleUtils.getOsgiService(ConnectorService.class, "(" + JahiaAuthConstants.CONNECTOR_SERVICE_NAME + "=" + connectorServiceName + ")");
+    private ActionResult getSettings(RenderContext renderContext, Map<String, List<String>> parameters) throws JSONException {
+        JSONObject response = new JSONObject();
+        if (!parameters.containsKey(JahiaAuthConstants.CONNECTOR_SERVICE_NAME) || !parameters.containsKey(JahiaAuthConstants.PROPERTIES) || parameters.get(JahiaAuthConstants.PROPERTIES).isEmpty()) {
+            response.put(ERROR, REQUIRED_PROPERTIES_ARE_MISSING_IN_THE_REQUEST);
+            return new ActionResult(HttpServletResponse.SC_BAD_REQUEST, null, response);
+        }
 
-                FileUpload fup = (FileUpload) req.getAttribute("fileUpload");
+        String nodeName = parameters.get(JahiaAuthConstants.CONNECTOR_SERVICE_NAME).get(0);
 
-                Map<String, Object> properties = new ObjectMapper().readValue(parameters.get(JahiaAuthConstants.PROPERTIES).get(0), HashMap.class);
-                if (!properties.containsKey(JahiaAuthConstants.PROPERTY_IS_ENABLED)) {
-                    response.put("error", "required properties are missing in the request");
-                    return new ActionResult(HttpServletResponse.SC_BAD_REQUEST, null, response);
-                }
+        String siteKey = renderContext.getSite().getSiteKey();
+        Settings settings = settingsService.getSettings(siteKey);
+        Settings.Values v = settings.getValues(nodeName);
+        if (v.isEmpty()) {
+            return new ActionResult(HttpServletResponse.SC_NO_CONTENT, null, response);
+        }
 
-
-                Settings settings = settingsService.getSettings(renderContext.getSite().getSiteKey());
-                Settings.Values v = settings.getValues(connectorServiceName);
-                for (Map.Entry<String, Object> entry : properties.entrySet()) {
-                    if (fup.getFileItems().containsKey("file_" + entry.getKey())) {
-                        File s = fup.getFileItems().get("file_" + entry.getKey()).getStoreLocation();
-                        v.setBinaryProperty(entry.getKey(), FileUtils.readFileToByteArray(s));
-                    } else if (entry.getValue() instanceof List) {
-                        v.setListProperty(entry.getKey(), (List) entry.getValue());
-                    } else {
-                        v.setProperty(entry.getKey(), entry.getValue().toString());
-                    }
-                }
-
-                connectorService.validateSettings(new ConnectorConfig(settings, connectorServiceName));
-
-                settingsService.storeSettings(settings);
-            } catch (Exception e) {
-                JSONObject error = new JSONObject();
-                if (logger.isDebugEnabled()) {
-                    logger.debug("error while saving settings", e);
-                }
-                if (e.getMessage() != null) {
-                    error.put("error", e.getMessage());
-                    if (e.getCause() != null && e.getCause().getMessage() != null) {
-                        error.put("error", e.getMessage() + " - " + e.getCause().getMessage());
-                    }
+        for (String property : parameters.get(JahiaAuthConstants.PROPERTIES)) {
+            if (!v.getListProperty(property).isEmpty()) {
+                JSONArray array = new JSONArray();
+                v.getListProperty(property).forEach(array::put);
+                response.put(property, array);
+            } else if (v.getProperty(property) != null) {
+                if (property.equals(JahiaAuthConstants.PROPERTY_IS_ENABLED)) {
+                    response.put(property, Boolean.valueOf(v.getProperty(property)));
                 } else {
-                    error.put("error", "Error when saving");
+                    response.put(property, v.getProperty(property));
                 }
-                error.put("type", e.getClass().getSimpleName());
-                return new ActionResult(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, null, error);
             }
         }
-
         return new ActionResult(HttpServletResponse.SC_OK, null, response);
+    }
+
+    private ActionResult updateData(HttpServletRequest req, RenderContext renderContext, Map<String, List<String>> parameters) throws JSONException {
+        JSONObject response = new JSONObject();
+        // Register or update data
+        if (!parameters.containsKey(JahiaAuthConstants.CONNECTOR_SERVICE_NAME) || !parameters.containsKey(JahiaAuthConstants.PROPERTIES) || parameters.get(JahiaAuthConstants.PROPERTIES).isEmpty()) {
+            response.put(ERROR, REQUIRED_PROPERTIES_ARE_MISSING_IN_THE_REQUEST);
+            return new ActionResult(HttpServletResponse.SC_BAD_REQUEST, null, response);
+        }
+
+        try {
+            String connectorServiceName = parameters.get(JahiaAuthConstants.CONNECTOR_SERVICE_NAME).get(0);
+            ConnectorService connectorService = BundleUtils.getOsgiService(ConnectorService.class, "(" + JahiaAuthConstants.CONNECTOR_SERVICE_NAME + "=" + connectorServiceName + ")");
+
+            FileUpload fup = (FileUpload) req.getAttribute("fileUpload");
+
+            Map<String, Object> properties = new ObjectMapper().readValue(parameters.get(JahiaAuthConstants.PROPERTIES).get(0), HashMap.class);
+            if (!properties.containsKey(JahiaAuthConstants.PROPERTY_IS_ENABLED)) {
+                response.put(ERROR, REQUIRED_PROPERTIES_ARE_MISSING_IN_THE_REQUEST);
+                return new ActionResult(HttpServletResponse.SC_BAD_REQUEST, null, response);
+            }
+
+            Settings settings = updateSettings(renderContext, connectorServiceName, fup, properties);
+
+            connectorService.validateSettings(new ConnectorConfig(settings, connectorServiceName));
+
+            settingsService.storeSettings(settings);
+            return new ActionResult(HttpServletResponse.SC_OK, null, response);
+        } catch (Exception e) {
+            JSONObject error = new JSONObject();
+            if (logger.isDebugEnabled()) {
+                logger.debug("error while saving settings", e);
+            }
+            if (e.getMessage() != null) {
+                error.put(ERROR, e.getMessage());
+                if (e.getCause() != null && e.getCause().getMessage() != null) {
+                    error.put(ERROR, e.getMessage() + " - " + e.getCause().getMessage());
+                }
+            } else {
+                error.put(ERROR, "Error when saving");
+            }
+            error.put("type", e.getClass().getSimpleName());
+            return new ActionResult(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, null, error);
+        }
+    }
+
+    private Settings updateSettings(RenderContext renderContext, String connectorServiceName, FileUpload fup, Map<String, Object> properties) throws IOException {
+        Settings settings = settingsService.getSettings(renderContext.getSite().getSiteKey());
+        Settings.Values v = settings.getValues(connectorServiceName);
+        for (Map.Entry<String, Object> entry : properties.entrySet()) {
+            if (fup.getFileItems().containsKey("file_" + entry.getKey())) {
+                File s = fup.getFileItems().get("file_" + entry.getKey()).getStoreLocation();
+                v.setBinaryProperty(entry.getKey(), FileUtils.readFileToByteArray(s));
+            } else if (entry.getValue() instanceof List) {
+                v.setListProperty(entry.getKey(), (List) entry.getValue());
+            } else {
+                v.setProperty(entry.getKey(), entry.getValue().toString());
+            }
+        }
+        return settings;
     }
 
     public void setSettingsService(SettingsServiceImpl settingsService) {

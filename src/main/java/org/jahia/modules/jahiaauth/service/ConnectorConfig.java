@@ -17,13 +17,13 @@ public class ConnectorConfig {
         this.values = settings.getValues(connectorName);
 
         try {
-            initMappers(settings, connectorName);
+            initMappers(settings);
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
-    private void initMappers(Settings settings, String connectorName) throws JSONException {
+    private void initMappers(Settings settings) throws JSONException {
         Settings.Values mappersValues = values.getSubValues(JahiaAuthConstants.MAPPERS_NODE_NAME);
         for (String subValueKey : mappersValues.getSubValueKeys()) {
             Settings.Values mapper = mappersValues.getSubValues(subValueKey);
@@ -52,7 +52,7 @@ public class ConnectorConfig {
                 mappingsMap.put(mapping.getMappedProperty(), mapping);
             }
 
-            MapperConfig mapperConfig = new MapperConfig(subValueKey);
+            MapperConfig mapperConfig = new MapperConfig(subValueKey, mapper);
             mapperConfig.setSiteKey(settings.getSiteKey());
             mapperConfig.setActive(mapper.getBooleanProperty(JahiaAuthConstants.PROPERTY_IS_ENABLED));
             mapperConfig.getMappings().addAll(mappingsMap.values());
