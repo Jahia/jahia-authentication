@@ -59,9 +59,9 @@
     <description>This is the custom module (Jahia OAuth) for running on a Digital Experience Manager server.</description>
 
     <scm>
-        <connection>scm:git:git@github.com:Jahia/jahia-oauth.git</connection>
-        <developerConnection>scm:git:git@github.com:Jahia/jahia-oauth.git</developerConnection>
-        <url>https://github.com/Jahia/jahia-oauth</url>
+        <connection>scm:git:git@github.com:Jahia/jahia-authentication.git</connection>
+        <developerConnection>scm:git:git@github.com:Jahia/jahia-authentication.git</developerConnection>
+        <url>https://github.com/Jahia/jahia-authentication</url>
         <tag>HEAD</tag>
     </scm>
 
@@ -72,17 +72,6 @@
         <jahia-module-signature>MCwCFD3g3rcsEt0cVepH+/5b+YHfzgmZAhRJwO6Et18i6C//2QSk6AEBfJtiCA==</jahia-module-signature>
         <jahia.modules.importPackage>!com.hazelcast.config,!com.hazelcast.core</jahia.modules.importPackage>
     </properties>
-
-    <distributionManagement>
-        <repository>
-            <id>oauth-releases</id>
-            <url>https://devtools.jahia.com/nexus/content/repositories/oauth-releases</url>
-        </repository>
-        <snapshotRepository>
-            <id>oauth-snapshots</id>
-            <url>https://devtools.jahia.com/nexus/content/repositories/oauth-snapshots</url>
-        </snapshotRepository>
-    </distributionManagement>
 
     <repositories>
         <repository>
