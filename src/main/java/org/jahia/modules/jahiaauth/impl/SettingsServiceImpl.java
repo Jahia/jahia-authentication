@@ -1,16 +1,20 @@
 package org.jahia.modules.jahiaauth.impl;
 
-import org.jahia.modules.jahiaauth.service.ConnectorConfig;
-import org.jahia.modules.jahiaauth.service.JahiaAuthConstants;
-import org.jahia.modules.jahiaauth.service.Settings;
-import org.jahia.modules.jahiaauth.service.SettingsService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jahia.bin.ActionResult;
+import org.jahia.modules.jahiaauth.service.*;
+import org.jahia.osgi.BundleUtils;
 import org.jahia.settings.SettingsBean;
+import org.jahia.tools.files.FileUpload;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -18,6 +22,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class SettingsServiceImpl implements SettingsService, ManagedServiceFactory {
+    private static final Logger logger = LoggerFactory.getLogger(SettingsServiceImpl.class);
     private static final SettingsServiceImpl INSTANCE = new SettingsServiceImpl();
     private Map<String, Settings> settingsBySiteKeyMap = new HashMap<>();
     private Map<String, Settings> settingsByPid = new HashMap<>();
@@ -92,13 +97,23 @@ public class SettingsServiceImpl implements SettingsService, ManagedServiceFacto
 
     @Override
     public void updated(String pid, Dictionary<String, ?> properties) throws ConfigurationException {
-        if (settingsByPid.get(pid) == null) {
-            Settings setting = new Settings();
-            settingsByPid.put(pid, setting);
-            setting.setSettingsService(this);
-            setting.update(getMap(properties));
+        Settings settings = settingsByPid.get(pid);
+        if (settings == null) {
+            settings = new Settings();
+            settingsByPid.put(pid, settings);
+            settings.setSettingsService(this);
+            settings.update(getMap(properties));
         } else {
-            settingsByPid.get(pid).update(getMap(properties));
+            settings.update(getMap(properties));
+            Set<String> connectors = settings.getValues(null).getSubValueKeys();
+            for (String connector : connectors) {
+                ConnectorService connectorService = BundleUtils.getOsgiService(ConnectorService.class, "(" + JahiaAuthConstants.CONNECTOR_SERVICE_NAME + "=" + connector + ")");
+                try {
+                    connectorService.validateSettings(new ConnectorConfig(settings, connector));
+                } catch (Exception e) {
+                    logger.error("Cannot validate settings",e);
+                }
+            }
         }
     }
 

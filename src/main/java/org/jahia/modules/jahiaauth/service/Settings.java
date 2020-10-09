@@ -60,7 +60,7 @@ public class Settings {
     }
 
     private Map<String, String> evalPath(Map<String, String> settings, String path) {
-        return settings.keySet().stream().filter(k -> k.startsWith(path + ".")).collect(Collectors.toMap(s -> s.substring(path.length() + 1), settings::get));
+        return path == null ? settings : settings.keySet().stream().filter(k -> k.startsWith(path + ".")).collect(Collectors.toMap(s -> s.substring(path.length() + 1), settings::get));
     }
 
     @Override
