@@ -1,11 +1,8 @@
 package org.jahia.modules.jahiaauth.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.jahia.bin.ActionResult;
 import org.jahia.modules.jahiaauth.service.*;
 import org.jahia.osgi.BundleUtils;
 import org.jahia.settings.SettingsBean;
-import org.jahia.tools.files.FileUpload;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
@@ -14,7 +11,6 @@ import org.osgi.service.cm.ManagedServiceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
