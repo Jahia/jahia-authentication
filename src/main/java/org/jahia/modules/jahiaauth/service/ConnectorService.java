@@ -53,20 +53,6 @@ import java.util.List;
  */
 public interface ConnectorService {
     /**
-     * This method get the connector service name
-     *
-     * @return String connector service name
-     */
-    String getServiceName();
-
-    /**
-     * This method return the url that will allow Jahia OAuth to get the user data
-     *
-     * @return String url to request to get the user data
-     */
-    String getProtectedResourceUrl();
-
-    /**
      * This method get the list of available properties with this connector
      *
      * @return List the list of available properties
@@ -74,17 +60,4 @@ public interface ConnectorService {
     List<ConnectorPropertyInfo> getAvailableProperties();
 
     void validateSettings(ConnectorConfig settings) throws IOException;
-
-    /**
-     * Nested interface implemented by FranceConnect connector to allow Jahia OAuth
-     * to work with the right mode
-     */
-    interface DevMode {
-        /**
-         * This method return a boolean value that will allow to use the right URL
-         *
-         * @return boolean value
-         */
-        boolean isDevMode();
-    }
 }
