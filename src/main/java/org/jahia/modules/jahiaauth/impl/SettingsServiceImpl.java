@@ -153,9 +153,11 @@ public class SettingsServiceImpl implements SettingsService, ManagedServiceFacto
     private Configuration findConfiguration(String siteKey) throws IOException {
         try {
             Configuration[] configurations = configurationAdmin.listConfigurations("(service.factoryPid=org.jahia.modules.auth)");
-            for (Configuration configuration : configurations) {
-                if (siteKey.equals(configuration.getProperties().get(JahiaAuthConstants.SITE_KEY))) {
-                    return configuration;
+            if (configurations != null) {
+                for (Configuration configuration : configurations) {
+                    if (siteKey.equals(configuration.getProperties().get(JahiaAuthConstants.SITE_KEY))) {
+                        return configuration;
+                    }
                 }
             }
         } catch (InvalidSyntaxException e) {
