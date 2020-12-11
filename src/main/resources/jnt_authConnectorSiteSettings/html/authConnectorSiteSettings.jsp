@@ -37,7 +37,7 @@
     <script>
         angular.module('JahiaOAuthApp').constant('jahiaContext', {
             siteKey: '${renderContext.site.siteKey}',
-            baseEdit: '${url.context}${url.baseEdit}',
+            basePreview: '${url.context}${url.basePreview}',
             context: '${url.context}',
             sitePath: '${renderContext.siteInfo.sitePath}'
         });

@@ -20,13 +20,13 @@
             angular.forEach(properties, function(property) {
                 propertiesAsString += '&properties=' + property;
             });
-            return $http.get(jahiaContext.baseEdit + jahiaContext.sitePath + '.manageConnectorsSettingsAction.do?connectorServiceName=' + nodeName + propertiesAsString);
+            return $http.get(jahiaContext.basePreview + jahiaContext.sitePath + '.manageConnectorsSettingsAction.do?connectorServiceName=' + nodeName + propertiesAsString);
         }
 
         function setConnectorData(data, options) {
             return $http({
                 method: 'POST',
-                url: jahiaContext.baseEdit + jahiaContext.sitePath + '.manageConnectorsSettingsAction.do',
+                url: jahiaContext.basePreview + jahiaContext.sitePath + '.manageConnectorsSettingsAction.do',
                 data: data,
                 headers: {'Content-Type': undefined},
                 transformRequest: function (data) {
@@ -47,7 +47,7 @@
             data.action = 'getConnectorProperties';
             return $http({
                 method: 'POST',
-                url: jahiaContext.baseEdit + jahiaContext.sitePath + '.manageMappersAction.do',
+                url: jahiaContext.basePreview + jahiaContext.sitePath + '.manageMappersAction.do',
                 params: data
             })
         }
@@ -56,7 +56,7 @@
             data.action = 'getMapperProperties';
             return $http({
                 method: 'POST',
-                url: jahiaContext.baseEdit + jahiaContext.sitePath + '.manageMappersAction.do',
+                url: jahiaContext.basePreview + jahiaContext.sitePath + '.manageMappersAction.do',
                 params: data
             })
         }
@@ -65,7 +65,7 @@
             data.action = 'getMapperMapping';
             return $http({
                 method: 'POST',
-                url: jahiaContext.baseEdit + jahiaContext.sitePath + '.manageMappersAction.do',
+                url: jahiaContext.basePreview + jahiaContext.sitePath + '.manageMappersAction.do',
                 params: data
             })
         }
@@ -74,7 +74,7 @@
             data.action = 'setMapperMapping';
             return $http({
                 method: 'POST',
-                url: jahiaContext.baseEdit + jahiaContext.sitePath + '.manageMappersAction.do',
+                url: jahiaContext.basePreview + jahiaContext.sitePath + '.manageMappersAction.do',
                 params: data
             })
         }
