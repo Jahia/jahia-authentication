@@ -31,10 +31,6 @@ public class ConnectorConfig {
             JSONArray mappingsJson = new JSONArray(mapper.getProperty(JahiaAuthConstants.PROPERTY_MAPPING));
 
             Map<String, Mapping> mappingsMap = new HashMap<>();
-            Mapping loginMapping = new Mapping();
-            loginMapping.setConnectorProperty(JahiaAuthConstants.CONNECTOR_NAME_AND_ID);
-            loginMapping.setMappedProperty(JahiaAuthConstants.SSO_LOGIN);
-            mappingsMap.put(JahiaAuthConstants.SSO_LOGIN, loginMapping);
 
             Mapping siteMapping = new Mapping();
             siteMapping.setConnectorProperty(JahiaAuthConstants.PROPERTY_SITE_KEY);
