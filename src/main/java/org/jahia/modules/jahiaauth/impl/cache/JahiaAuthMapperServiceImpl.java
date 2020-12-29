@@ -115,7 +115,9 @@ public class JahiaAuthMapperServiceImpl implements JahiaAuthMapperService {
                 throw new JahiaAuthException("Could not execute mapper: missing mandatory property");
             }
             if (propertiesResult.containsKey(mapping.getConnectorProperty())) {
-                mapperResult.put(mapping.getMappedProperty(), new MappedProperty(m != null ? m.get(mapping.getMappedProperty()) : new MappedPropertyInfo(mapping.getMappedProperty()), propertiesResult.get(mapping.getConnectorProperty())));
+                mapperResult.put(mapping.getMappedProperty(), new MappedProperty(m != null ? m.get(mapping.getMappedProperty()) : new MappedPropertyInfo(mapping.getMappedProperty()),
+                        // to avoid serialization error of null json object property
+                        String.valueOf(propertiesResult.get(mapping.getConnectorProperty()))));
             }
         }
 
