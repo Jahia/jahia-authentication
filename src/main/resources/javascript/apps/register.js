@@ -6,6 +6,6 @@
         label: 'jahia-authentication:label',
         isSelectable: true,
         requireModuleInstalledOnSite: 'jahia-authentication',
-        iframeUrl: window.contextJsParameters.contextPath + '/cms/render/default/$lang/sites/$site-key.auth-connector-site-settings.html?redirect=false'
+        iframeUrl: window.contextJsParameters.contextPath + '/cms/editframe/default/$lang/sites/$site-key.auth-connector-site-settings.html?redirect=false'
     });
 })();
