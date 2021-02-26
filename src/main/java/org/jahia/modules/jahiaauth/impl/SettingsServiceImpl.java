@@ -163,7 +163,7 @@ public class SettingsServiceImpl implements SettingsService, ManagedServiceFacto
         } catch (InvalidSyntaxException e) {
             // not possible
         }
-        return configurationAdmin.createFactoryConfiguration("org.jahia.modules.auth");
+        return configurationAdmin.createFactoryConfiguration("org.jahia.modules.auth", "?");
     }
 
 }
