@@ -48,7 +48,7 @@
             return $http({
                 method: 'POST',
                 url: jahiaContext.basePreview + jahiaContext.sitePath + '.manageMappersAction.do',
-                params: data
+                data: data
             })
         }
 
@@ -57,7 +57,7 @@
             return $http({
                 method: 'POST',
                 url: jahiaContext.basePreview + jahiaContext.sitePath + '.manageMappersAction.do',
-                params: data
+                data: data
             })
         }
 
@@ -66,7 +66,7 @@
             return $http({
                 method: 'POST',
                 url: jahiaContext.basePreview + jahiaContext.sitePath + '.manageMappersAction.do',
-                params: data
+                data: data
             })
         }
 
@@ -75,7 +75,7 @@
             return $http({
                 method: 'POST',
                 url: jahiaContext.basePreview + jahiaContext.sitePath + '.manageMappersAction.do',
-                params: data
+                data: data
             })
         }
     }

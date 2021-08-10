@@ -43,7 +43,10 @@
  */
 package org.jahia.modules.jahiaauth.action;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.jahia.bin.Action;
 import org.jahia.bin.ActionResult;
 import org.jahia.modules.jahiaauth.impl.SettingsServiceImpl;
@@ -60,10 +63,7 @@ import org.json.JSONObject;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -77,51 +77,54 @@ public class ManageMappers extends Action {
     public ActionResult doExecute(HttpServletRequest req, RenderContext renderContext, Resource resource,
                                   JCRSessionWrapper session, Map<String, List<String>> parameters,
                                   URLResolver urlResolver) throws Exception {
-        String action = parameters.get("action").get(0);
-        if (action.equals("getConnectorProperties")) {
-            return getConnectorProperties(parameters);
-        } else if (action.equals("getMapperProperties")) {
-            return getMapperProperties(parameters);
-        } else if (action.equals("getMapperMapping")) {
-            return getMapperMapping(renderContext, parameters);
-        } else if (action.equals("setMapperMapping")) {
-            return setMapperMapping(renderContext, parameters);
+        JsonNode params = new ObjectMapper().readTree(req.getInputStream());
+        String action = params.get("action").asText();
+        switch (action) {
+            case "getConnectorProperties":
+                return getConnectorProperties(params);
+            case "getMapperProperties":
+                return getMapperProperties(params);
+            case "getMapperMapping":
+                return getMapperMapping(renderContext, params);
+            case "setMapperMapping":
+                return setMapperMapping(renderContext, params);
+            default:
+                return new ActionResult(HttpServletResponse.SC_OK, null, new JSONObject());
         }
-
-        return new ActionResult(HttpServletResponse.SC_OK, null, new JSONObject());
     }
 
-    private ActionResult setMapperMapping(RenderContext renderContext, Map<String, List<String>> parameters) throws JSONException, IOException {
+    private ActionResult setMapperMapping(RenderContext renderContext, JsonNode parameters) throws JSONException, IOException {
         JSONObject response = new JSONObject();
-        if (!parameters.containsKey(JahiaAuthConstants.PROPERTIES)
-                || !parameters.containsKey(JahiaAuthConstants.MAPPER_SERVICE_NAME)
-                || !parameters.containsKey(JahiaAuthConstants.CONNECTOR_SERVICE_NAME)) {
+        if (!parameters.hasNonNull(JahiaAuthConstants.PROPERTIES)
+                || !parameters.hasNonNull(JahiaAuthConstants.MAPPER_SERVICE_NAME)
+                || !parameters.hasNonNull(JahiaAuthConstants.CONNECTOR_SERVICE_NAME)) {
             response.put(ERROR, "required properties are missing in the request");
             return new ActionResult(HttpServletResponse.SC_BAD_REQUEST, null, response);
         }
 
-        String connectorServiceName = parameters.get(JahiaAuthConstants.CONNECTOR_SERVICE_NAME).get(0);
-        String mapperServiceName = parameters.get(JahiaAuthConstants.MAPPER_SERVICE_NAME).get(0);
-        Map<String, Object> properties = new ObjectMapper().readValue(parameters.get(JahiaAuthConstants.PROPERTIES).get(0), HashMap.class);
+        String connectorServiceName = parameters.get(JahiaAuthConstants.CONNECTOR_SERVICE_NAME).asText();
+        String mapperServiceName = parameters.get(JahiaAuthConstants.MAPPER_SERVICE_NAME).asText();
+        JsonNode properties = parameters.get(JahiaAuthConstants.PROPERTIES);
 
-        boolean enabled = (boolean) properties.get(JahiaAuthConstants.PROPERTY_IS_ENABLED);
-        if (enabled && !parameters.containsKey(JahiaAuthConstants.PROPERTY_MAPPING)) {
+        boolean enabled = properties.get(JahiaAuthConstants.PROPERTY_IS_ENABLED).asBoolean();
+        if (enabled && !parameters.hasNonNull(JahiaAuthConstants.PROPERTY_MAPPING)) {
             response.put(ERROR, "mapping is missing");
             return new ActionResult(HttpServletResponse.SC_BAD_REQUEST, null, response);
         }
 
         Settings settings = settingsService.getSettings(renderContext.getSite().getSiteKey());
 
-        List<String> mapping = (parameters.containsKey(JahiaAuthConstants.PROPERTY_MAPPING))? parameters.get(JahiaAuthConstants.PROPERTY_MAPPING):new ArrayList<String>();
+        JsonNode mapping = (parameters.hasNonNull(JahiaAuthConstants.PROPERTY_MAPPING)) ? parameters.get(JahiaAuthConstants.PROPERTY_MAPPING) : new ArrayNode(JsonNodeFactory.instance);
 
         Settings.Values mappersNode = settings.getValues(connectorServiceName).getSubValues(JahiaAuthConstants.MAPPERS_NODE_NAME).getSubValues(mapperServiceName);
 
         mappersNode.setProperty(JahiaAuthConstants.PROPERTY_MAPPING, mapping.toString());
-        for (Map.Entry<String, Object> entry : properties.entrySet()) {
-            if (entry.getValue() instanceof List) {
-                mappersNode.setListProperty(entry.getKey(), (List) entry.getValue());
+        for (Iterator<String> it = properties.fieldNames(); it.hasNext(); ) {
+            String entry = it.next();
+            if (properties.get(entry).isArray()) {
+                mappersNode.setListProperty(entry, new ObjectMapper().treeToValue(properties.get(entry), ArrayList.class));
             } else {
-                mappersNode.setProperty(entry.getKey(), entry.getValue().toString());
+                mappersNode.setProperty(entry, properties.get(entry).asText());
             }
         }
 
@@ -129,16 +132,16 @@ public class ManageMappers extends Action {
         return new ActionResult(HttpServletResponse.SC_OK, null, response);
     }
 
-    private ActionResult getMapperMapping(RenderContext renderContext, Map<String, List<String>> parameters) throws JSONException {
+    private ActionResult getMapperMapping(RenderContext renderContext, JsonNode parameters) throws JSONException {
         JSONObject response = new JSONObject();
-        if (!parameters.containsKey(JahiaAuthConstants.MAPPER_SERVICE_NAME)
-                || !parameters.containsKey(JahiaAuthConstants.CONNECTOR_SERVICE_NAME)) {
+        if (!parameters.hasNonNull(JahiaAuthConstants.MAPPER_SERVICE_NAME)
+                || !parameters.hasNonNull(JahiaAuthConstants.CONNECTOR_SERVICE_NAME)) {
             response.put(ERROR, "required properties are missing in the request");
             return new ActionResult(HttpServletResponse.SC_BAD_REQUEST, null, response);
         }
 
-        String connectorServiceName = parameters.get(JahiaAuthConstants.CONNECTOR_SERVICE_NAME).get(0);
-        String mapperServiceName = parameters.get(JahiaAuthConstants.MAPPER_SERVICE_NAME).get(0);
+        String connectorServiceName = parameters.get(JahiaAuthConstants.CONNECTOR_SERVICE_NAME).asText();
+        String mapperServiceName = parameters.get(JahiaAuthConstants.MAPPER_SERVICE_NAME).asText();
 
         Settings settings = settingsService.getSettings(renderContext.getSite().getSiteKey());
         Settings.Values mapperNode = settings.getValues(connectorServiceName).getSubValues(JahiaAuthConstants.MAPPERS_NODE_NAME).getSubValues(mapperServiceName);
@@ -152,7 +155,8 @@ public class ManageMappers extends Action {
         response.put(JahiaAuthConstants.PROPERTY_MAPPING, jsonArrayMapping);
 
         if (parameters.get(JahiaAuthConstants.PROPERTIES) != null) {
-            for (String property : parameters.get(JahiaAuthConstants.PROPERTIES)) {
+            for (Iterator<String> it = parameters.get(JahiaAuthConstants.PROPERTIES).fieldNames(); it.hasNext(); ) {
+                String property = it.next();
                 if (!mapperNode.getListProperty(property).isEmpty()) {
                     JSONArray array = new JSONArray();
                     mapperNode.getListProperty(property).forEach(array::put);
@@ -170,9 +174,9 @@ public class ManageMappers extends Action {
         return new ActionResult(HttpServletResponse.SC_OK, null, response);
     }
 
-    private ActionResult getMapperProperties(Map<String, List<String>> parameters) throws JSONException {
+    private ActionResult getMapperProperties(JsonNode parameters) throws JSONException {
         JSONObject response = new JSONObject();
-        String mapperServiceName = parameters.get(JahiaAuthConstants.MAPPER_SERVICE_NAME).get(0);
+        String mapperServiceName = parameters.get(JahiaAuthConstants.MAPPER_SERVICE_NAME).asText();
         Mapper mapperService = BundleUtils.getOsgiService(Mapper.class, "(" + JahiaAuthConstants.MAPPER_SERVICE_NAME + "=" + mapperServiceName + ")");
         if (mapperService == null) {
             response.put(ERROR, "Cannot find connector");
@@ -182,9 +186,9 @@ public class ManageMappers extends Action {
         return new ActionResult(HttpServletResponse.SC_OK, null, response);
     }
 
-    private ActionResult getConnectorProperties(Map<String, List<String>> parameters) throws JSONException {
+    private ActionResult getConnectorProperties(JsonNode parameters) throws JSONException {
         JSONObject response = new JSONObject();
-        String connectorServiceName = parameters.get(JahiaAuthConstants.CONNECTOR_SERVICE_NAME).get(0);
+        String connectorServiceName = parameters.get(JahiaAuthConstants.CONNECTOR_SERVICE_NAME).asText();
         ConnectorService connectorService = BundleUtils.getOsgiService(ConnectorService.class, "(" + JahiaAuthConstants.CONNECTOR_SERVICE_NAME + "=" + connectorServiceName + ")");
         if (connectorService == null) {
             response.put(ERROR, "Cannot find connector");
