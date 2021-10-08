@@ -3,11 +3,13 @@ package org.jahia.modules.jahiaauth.service;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
 public class ConnectorConfig {
-
+    private static final Logger logger = LoggerFactory.getLogger(ConnectorConfig.class);
     private Settings settings;
     private Settings.Values values;
     private List<MapperConfig> mappers = new ArrayList<>();
@@ -19,7 +21,7 @@ public class ConnectorConfig {
         try {
             initMappers(settings);
         } catch (JSONException e) {
-            e.printStackTrace();
+            logger.warn("Error initializing authentication mappers", e);
         }
     }
 
