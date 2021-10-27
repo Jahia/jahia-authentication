@@ -1,24 +1,3 @@
-# v1.4.1 (Wed Oct 27 2021)
-
-#### 🐛 Bug Fix
-
-- QA-13939 Use logger instead of e.printStackTrace() [#19](https://github.com/Jahia/jahia-authentication/pull/19) ([@bpapez](https://github.com/bpapez))
-- QA-13809: Use JSON in request body to avoid breaking  limit of URL pa… [#18](https://github.com/Jahia/jahia-authentication/pull/18) ([@cedmail](https://github.com/cedmail))
-- Updated config to include the latest update to the sonar job in Jahia Orb [#17](https://github.com/Jahia/jahia-authentication/pull/17) ([@Fgerthoffert](https://github.com/Fgerthoffert))
-
-#### ⚠️ Pushed to `master`
-
-- [ci skip] Updated signature for Jahia Authentication ([@jahia-ci](https://github.com/jahia-ci))
-
-#### Authors: 4
-
-- Benjamin Papez ([@bpapez](https://github.com/bpapez))
-- Cedric Mailleux ([@cedmail](https://github.com/cedmail))
-- Francois G. ([@Fgerthoffert](https://github.com/Fgerthoffert))
-- Jahia Continuous Integration account ([@jahia-ci](https://github.com/jahia-ci))
-
----
-
 # v0.0.1 (Tue Mar 02 2021)
 
 #### 🐛 Bug Fix
