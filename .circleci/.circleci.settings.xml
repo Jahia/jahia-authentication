@@ -67,6 +67,23 @@
             <password>${env.NEXUS_RELEASE_PASSWORD}</password>
         </server>
     </servers>
+
+    <!-- Enabling https on these specific repositories for mvn 3.8 compatibility -->
+    <mirrors>
+        <mirror>
+            <id>com.springsource.repository.bundles.release.mirror</id>
+            <name>EBR Spring Release Repository - mirror</name>
+            <url>https://repository.springsource.com/maven/bundles/release</url>
+            <mirrorOf>com.springsource.repository.bundles.release</mirrorOf>
+        </mirror>
+        <mirror>
+            <id>com.springsource.repository.bundles.external.mirror</id>
+            <name>EBR External Release Repository - mirror</name>
+            <url>https://repository.springsource.com/maven/bundles/external</url>
+            <mirrorOf>com.springsource.repository.bundles.external</mirrorOf>
+        </mirror>
+    </mirrors>
+
     <pluginGroups>
         <pluginGroup>org.owasp</pluginGroup>
     </pluginGroups>
