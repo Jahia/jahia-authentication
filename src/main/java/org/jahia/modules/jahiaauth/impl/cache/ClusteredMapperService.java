@@ -69,11 +69,7 @@ public class ClusteredMapperService implements CacheService {
 
     @Override
     public void cacheMapperResults(String cacheKey, Map<String, MappedProperty> mapperResult) {
-        if (hazelcastInstance.getMap(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE).containsKey(cacheKey)) {
-            hazelcastInstance.getMap(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE).replace(cacheKey, mapperResult);
-        } else {
-            hazelcastInstance.getMap(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE).set(cacheKey, mapperResult);
-        }
+        hazelcastInstance.getMap(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE).set(cacheKey, mapperResult);
     }
 
     @Override
