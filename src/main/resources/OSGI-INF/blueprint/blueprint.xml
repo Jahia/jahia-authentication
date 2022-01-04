@@ -37,17 +37,33 @@
     </bean>
 
     <service interface="org.jahia.bin.Action">
-        <bean class="org.jahia.modules.jahiaauth.action.ManageConnectorsSettings">
-            <property name="name" value="manageConnectorsSettingsAction"/>
-            <property name="requiredMethods" value="GET,POST"/>
+        <bean class="org.jahia.modules.jahiaauth.action.ReadConnectorsSettings">
+            <property name="name" value="readConnectorsSettingsAction"/>
+            <property name="requiredMethods" value="GET"/>
             <property name="requiredPermission" value="canSetupJahiaAuth"/>
             <property name="settingsService" ref="settingsService"/>
         </bean>
     </service>
 
     <service interface="org.jahia.bin.Action">
-        <bean class="org.jahia.modules.jahiaauth.action.ManageMappers">
-            <property name="name" value="manageMappersAction"/>
+        <bean class="org.jahia.modules.jahiaauth.action.WriteConnectorsSettings">
+            <property name="name" value="writeConnectorsSettingsAction"/>
+            <property name="requiredPermission" value="canSetupJahiaAuth"/>
+            <property name="settingsService" ref="settingsService"/>
+        </bean>
+    </service>    
+
+    <service interface="org.jahia.bin.Action">
+        <bean class="org.jahia.modules.jahiaauth.action.ReadMappers">
+            <property name="name" value="readMappersAction"/>
+            <property name="requiredPermission" value="canSetupJahiaAuth"/>
+            <property name="settingsService" ref="settingsService"/>
+        </bean>
+    </service>
+    
+    <service interface="org.jahia.bin.Action">
+        <bean class="org.jahia.modules.jahiaauth.action.WriteMappers">
+            <property name="name" value="writeMappersAction"/>
             <property name="requiredPermission" value="canSetupJahiaAuth"/>
             <property name="settingsService" ref="settingsService"/>
         </bean>
