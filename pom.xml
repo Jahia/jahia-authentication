@@ -69,7 +69,7 @@
         <export-package>org.jahia.modules.jahiaauth.service,org.jahia.modules.jahiaauth.action,org.jahia.modules.jahiaauth.tag</export-package>
         <jahia-static-resources>/css,/javascript,/icons</jahia-static-resources>
         <require-capability>osgi.extender;filter:="(osgi.extender=org.jahia.bundles.blueprint.extender.config)"</require-capability>
-        <jahia-module-signature>MCwCFFlyv3eC/X+AdXcVnPZjc/xCIlGAAhRcEFiKkK7D+s1sllk36sYxgMnUiA==</jahia-module-signature>
+        <jahia-module-signature>MCwCFH2RcDpUwhQJ0iPwpfqsFbyqYcooAhQXLg1WLgnA+N4AJw6y3IGiZuD4xg==</jahia-module-signature>
         <jahia.modules.importPackage>!com.hazelcast.config,!com.hazelcast.core</jahia.modules.importPackage>
     </properties>
 
