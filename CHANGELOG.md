@@ -1,3 +1,24 @@
+# v0.0.1 (Wed Feb 16 2022)
+
+#### 🐛 Bug Fix
+
+- BACKLOG-15401: Split actions into read and write action classes [#23](https://github.com/Jahia/jahia-authentication/pull/23) ([@bpapez](https://github.com/bpapez))
+- QA-14014: Serialization issue with Jahia Authentication in Cluster [#22](https://github.com/Jahia/jahia-authentication/pull/22) ([@faissah](https://github.com/faissah))
+
+#### ⚠️ Pushed to `master`
+
+- Updated the config to use the latest version of the orb ([@Fgerthoffert](https://github.com/Fgerthoffert))
+- [ci skip] Updated signature for Jahia Authentication ([@jahia-ci](https://github.com/jahia-ci))
+
+#### Authors: 4
+
+- Benjamin Papez ([@bpapez](https://github.com/bpapez))
+- Fabrice A. ([@faissah](https://github.com/faissah))
+- Francois G. ([@Fgerthoffert](https://github.com/Fgerthoffert))
+- Jahia Continuous Integration account ([@jahia-ci](https://github.com/jahia-ci))
+
+---
+
 # v1.4.1 (Thu Oct 28 2021)
 
 #### 🐛 Bug Fix
