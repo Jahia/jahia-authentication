@@ -44,11 +44,13 @@
 package org.jahia.modules.jahiaauth.impl.cache;
 
 import org.jahia.api.settings.SettingsBean;
+import org.jahia.exceptions.JahiaRuntimeException;
 import org.jahia.modules.jahiaauth.service.MapperConfig;
 import org.jahia.modules.jahiaauth.service.Mapping;
 import org.jahia.modules.jahiaauth.service.*;
 import org.jahia.osgi.BundleUtils;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
@@ -98,6 +100,7 @@ public class JahiaAuthMapperServiceImpl implements JahiaAuthMapperService {
         }
     }
 
+    @Override
     public void executeMapper(String sessionId, MapperConfig mapperConfig, Map<String, Object> connectorProperties) throws JahiaAuthException {
         Mapper mapper = BundleUtils.getOsgiService(Mapper.class, "(" + JahiaAuthConstants.MAPPER_SERVICE_NAME + "=" + mapperConfig.getMapperName() + ")");
         Map<String, MappedProperty> mapperResult = getMapperResults(connectorProperties, mapper, mapperConfig);
@@ -105,6 +108,21 @@ public class JahiaAuthMapperServiceImpl implements JahiaAuthMapperService {
             mapper.executeMapper(mapperResult, mapperConfig);
         }
         cacheMapperResults(mapperConfig.getMapperName(), sessionId, mapperResult);
+    }
+
+    @Override
+    public void executeConnectorResultProcessors(ConnectorConfig connectorConfig, Map<String, Object> results) {
+        try {
+            ServiceReference[] refs = bundleContext.getAllServiceReferences(ConnectorResultProcessor.class.getName(), null);
+            if (refs != null && refs.length > 0) {
+                for (ServiceReference ref : refs) {
+                    ConnectorResultProcessor connectorResultProcessor = (ConnectorResultProcessor) bundleContext.getService(ref);
+                    connectorResultProcessor.execute(connectorConfig, results);
+                }
+            }
+        } catch (InvalidSyntaxException e) {
+            throw new JahiaRuntimeException(e);
+        }
     }
 
     private Map<String, MappedProperty> getMapperResults(Map<String, Object> propertiesResult, Mapper mapper, MapperConfig mapperConfig) throws JahiaAuthException {

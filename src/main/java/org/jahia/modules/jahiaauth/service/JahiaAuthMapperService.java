@@ -63,6 +63,16 @@ public interface JahiaAuthMapperService {
     void executeMapper(String sessionId, MapperConfig mapperConfig, Map<String, Object> connectorProperties) throws JahiaAuthException;
 
     /**
+     * This method will execute all the implementation of {@link ConnectorResultProcessor} available in the current OSGI context
+     * This allows for custom code execution right after a successful authentication, example use case:
+     * - retrieve data from the TOKEN and store this data in the authenticated user
+     * - extract additionals info from the results given by the auth provider.
+     * @param connectorConfig the connector Config that was used to establish the connection
+     * @param results the results of the authentication including tokens data.
+     */
+    void executeConnectorResultProcessors(ConnectorConfig connectorConfig, Map<String, Object> results);
+
+    /**
      * This method get the results of the mapper in the cache
      * @param cacheKey String the cache key built using the user session ID and the mapper service name
      * @return HashMap that contains the result for the mapper
