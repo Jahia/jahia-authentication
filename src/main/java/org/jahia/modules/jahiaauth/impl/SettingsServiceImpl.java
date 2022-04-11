@@ -1,6 +1,10 @@
 package org.jahia.modules.jahiaauth.impl;
 
-import org.jahia.modules.jahiaauth.service.*;
+import org.jahia.modules.jahiaauth.service.ConnectorConfig;
+import org.jahia.modules.jahiaauth.service.ConnectorService;
+import org.jahia.modules.jahiaauth.service.JahiaAuthConstants;
+import org.jahia.modules.jahiaauth.service.Settings;
+import org.jahia.modules.jahiaauth.service.SettingsService;
 import org.jahia.osgi.BundleUtils;
 import org.jahia.settings.SettingsBean;
 import org.osgi.framework.InvalidSyntaxException;
@@ -15,7 +19,13 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.*;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 public class SettingsServiceImpl implements SettingsService, ManagedServiceFactory {
     private static final Logger logger = LoggerFactory.getLogger(SettingsServiceImpl.class);
@@ -35,7 +45,6 @@ public class SettingsServiceImpl implements SettingsService, ManagedServiceFacto
     public void setConfigurationAdmin(ConfigurationAdmin configurationAdmin) {
         this.configurationAdmin = configurationAdmin;
     }
-
 
     public void registerServerSettings(Settings settings) {
         settingsBySiteKeyMap.put(settings.getSiteKey(), settings);
@@ -64,13 +73,27 @@ public class SettingsServiceImpl implements SettingsService, ManagedServiceFacto
         return null;
     }
 
+    public void connectorServiceUpdated(ConnectorService connectorService, String connectorName) {
+        settingsBySiteKeyMap.forEach((key, value) -> {
+            try {
+                ConnectorConfig connectorConfig = getConnectorConfig(key, connectorName);
+                if (connectorConfig != null) {
+                    connectorService.validateSettings(connectorConfig);
+                }
+            } catch (IOException e) {
+                logger.error("Error on settings validation for the connector {}", connectorName, e);
+            }
+        });
+    }
+
     public void storeSettings(Settings settings) throws IOException {
         // refresh and save settings
         Configuration configuration = findConfiguration(settings.getSiteKey());
 
         if (configuration.getProperties() == null) {
             @SuppressWarnings("java:S1149") Dictionary<String, Object> properties = new Hashtable<>();
-            File file = new File(SettingsBean.getInstance().getJahiaVarDiskPath(), "karaf/etc/org.jahia.modules.auth-" + settings.getSiteKey() + ".cfg");
+            File file = new File(SettingsBean.getInstance().getJahiaVarDiskPath(),
+                    "karaf/etc/org.jahia.modules.auth-" + settings.getSiteKey() + ".cfg");
             properties.put("felix.fileinstall.filename", file.toURI().toString());
 
             try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
@@ -103,18 +126,19 @@ public class SettingsServiceImpl implements SettingsService, ManagedServiceFacto
             settings.update(getMap(properties));
             Set<String> connectors = settings.getValues(null).getSubValueKeys();
             for (String connector : connectors) {
-                ConnectorService connectorService = BundleUtils.getOsgiService(ConnectorService.class, "(" + JahiaAuthConstants.CONNECTOR_SERVICE_NAME + "=" + connector + ")");
+                ConnectorService connectorService = BundleUtils
+                        .getOsgiService(ConnectorService.class, "(" + JahiaAuthConstants.CONNECTOR_SERVICE_NAME + "=" + connector + ")");
                 try {
                     connectorService.validateSettings(new ConnectorConfig(settings, connector));
                 } catch (Exception e) {
-                    logger.error("Cannot validate settings",e);
+                    logger.error("Cannot validate settings", e);
                 }
             }
         }
     }
 
     private Map<String, Object> getMap(Dictionary<String, ?> d) {
-        Map<String,Object> m = new HashMap<>();
+        Map<String, Object> m = new HashMap<>();
         Enumeration<String> en = d.keys();
         while (en.hasMoreElements()) {
             String key = en.nextElement();
@@ -122,7 +146,6 @@ public class SettingsServiceImpl implements SettingsService, ManagedServiceFacto
         }
         return m;
     }
-
 
     @Override
     public void deleted(String pid) {
