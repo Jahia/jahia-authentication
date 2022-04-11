@@ -73,19 +73,6 @@ public class SettingsServiceImpl implements SettingsService, ManagedServiceFacto
         return null;
     }
 
-    public void connectorServiceUpdated(ConnectorService connectorService, String connectorName) {
-        settingsBySiteKeyMap.forEach((key, value) -> {
-            try {
-                ConnectorConfig connectorConfig = getConnectorConfig(key, connectorName);
-                if (connectorConfig != null) {
-                    connectorService.validateSettings(connectorConfig);
-                }
-            } catch (IOException e) {
-                logger.error("Error on settings validation for the connector {}", connectorName, e);
-            }
-        });
-    }
-
     public void storeSettings(Settings settings) throws IOException {
         // refresh and save settings
         Configuration configuration = findConfiguration(settings.getSiteKey());

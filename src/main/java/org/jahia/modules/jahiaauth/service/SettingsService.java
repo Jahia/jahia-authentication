@@ -8,6 +8,4 @@ public interface SettingsService {
     void storeSettings(Settings settings) throws IOException;
 
     ConnectorConfig getConnectorConfig(String siteKey, String connectorName);
-
-    void connectorServiceUpdated(ConnectorService connectorService, String connectorName);
 }
