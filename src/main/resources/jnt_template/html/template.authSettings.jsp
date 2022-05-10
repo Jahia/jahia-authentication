@@ -28,7 +28,7 @@
         <c:if test="${!empty author}"><meta name="author" content="${fn:escapeXml(author.string)}" /></c:if>
         <c:if test="${!empty keywords}"><meta name="keywords" content="${fn:escapeXml(keywords)}" /></c:if>
         <title>${fn:escapeXml(renderContext.mainResource.node.displayableName)}</title>
-        <template:addResources type="javascript" resources="i18n/jahia-authentication-i18n_${currentResource.locale}.js" var="i18nJSFile"/>
+        <template:addResources type="javascript" resources="i18n/jahia-authentication-i18n_${renderContext.UILocale}.js" var="i18nJSFile"/>
         <c:if test="${empty i18nJSFile}">
             <template:addResources type="javascript" resources="i18n/jahia-authentication-i18n_en.js"/>
         </c:if>
