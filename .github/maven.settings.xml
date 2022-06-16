@@ -5,9 +5,17 @@
             <id>jahia-internal-repository</id>
             <repositories>
                 <repository>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                    <id>central</id>
+                    <name>Central Repository</name>
+                    <url>https://repo1.maven.org/maven2/</url>
+                </repository>
+                <repository>
                     <id>jahia-internal</id>
                     <name>Jahia Internal Repository</name>
-                    <url>${env.NEXUS_INTERNAL_URL}</url>
+                    <url>https://devtools.jahia.com/nexus/content/groups/internal</url>
                     <releases>
                         <enabled>true</enabled>
                         <updatePolicy>never</updatePolicy>
@@ -42,12 +50,12 @@
             <password>${env.NEXUS_PASSWORD}</password>
         </server>
         <server>
-            <id>jahia-snapshots</id>
+            <id>jahia-internal</id>
             <username>${env.NEXUS_USERNAME}</username>
             <password>${env.NEXUS_PASSWORD}</password>
         </server>
         <server>
-            <id>jahia-internal</id>
+            <id>jahia-snapshots</id>
             <username>${env.NEXUS_USERNAME}</username>
             <password>${env.NEXUS_PASSWORD}</password>
         </server>
@@ -63,8 +71,8 @@
         </server>
         <server>
             <id>staging-repository</id>
-            <username>${env.NEXUS_RELEASE_USERNAME}</username>
-            <password>${env.NEXUS_RELEASE_PASSWORD}</password>
+            <username>${env.NEXUS_USERNAME}</username>
+            <password>${env.NEXUS_PASSWORD}</password>
         </server>
     </servers>
 
@@ -83,7 +91,7 @@
             <mirrorOf>com.springsource.repository.bundles.external</mirrorOf>
         </mirror>
     </mirrors>
-
+    
     <pluginGroups>
         <pluginGroup>org.owasp</pluginGroup>
     </pluginGroups>
