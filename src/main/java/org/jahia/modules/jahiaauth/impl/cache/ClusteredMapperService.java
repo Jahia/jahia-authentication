@@ -76,7 +76,9 @@ public class ClusteredMapperService implements CacheService {
     public Map<String, MappedProperty> getCachedMapperResults(String cacheKey) {
         Map<String, MappedProperty> mapperResult = null;
         if (hazelcastInstance.getMap(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE).containsKey(cacheKey)) {
-            mapperResult = (Map<String, MappedProperty>) hazelcastInstance.getMap(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE).get(cacheKey);
+            mapperResult = ClassLoaderUtils.executeWith(ClusteredMapperService.class.getClassLoader(), () ->
+                    (Map<String, MappedProperty>) hazelcastInstance.getMap(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE).get(cacheKey)
+            );
         }
         return mapperResult;
     }
