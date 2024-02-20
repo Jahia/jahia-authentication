@@ -46,6 +46,7 @@ jobs:
           nexus_username: ${{ secrets.NEXUS_USERNAME }}
           nexus_password: ${{ secrets.NEXUS_PASSWORD }}
           mvn_settings_filepath: '.github/maven.settings.xml'
+          slack-webhook-qa: ${{ secrets.SLACK_WEBHOOK_URL_RC_FOR_QA }}
 
       - uses: jahia/jahia-modules-action/update-signature@v2
         with:
@@ -69,13 +70,13 @@ jobs:
         if: ${{ failure() }}
         uses: mxschmitt/action-tmate@v3
         timeout-minutes: 15
-        
+
   sbom:
     name: SBOM processing
     needs: on-release
     runs-on: ubuntu-latest
     container:
-      image: cyclonedx/cyclonedx-cli:0.24.2   
+      image: cyclonedx/cyclonedx-cli:0.24.2
     steps:
       - uses: jahia/jahia-modules-action/sbom-processing@v2
         with:
