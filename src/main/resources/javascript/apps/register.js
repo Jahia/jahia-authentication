@@ -10,6 +10,7 @@ if (config && config.operatingMode !== 'distantPublicationServer') {
     window.jahia.i18n.loadNamespaces('jahia-authentication');
     window.jahia.uiExtender.registry.add('adminRoute', 'jahia-authentication', {
         targets: ['administration-sites:99'],
+        requiredPermission: 'canSetupJahiaAuth',
         icon: window.jahia.moonstone.toIconComponent('Security'),
         label: 'jahia-authentication:label',
         isSelectable: true,
