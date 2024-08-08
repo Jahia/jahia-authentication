@@ -12,7 +12,7 @@ jobs:
     name: Update module signature
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: jahia/jahia-modules-action/update-signature@v2
         with:
           nexus_username: ${{ secrets.NEXUS_USERNAME }}
@@ -23,12 +23,14 @@ jobs:
     name: Static Analysis (linting, vulns)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: Jahia/jahia-modules-action/static-analysis@v2
         with:
-          node_version: 12
-          auditci_level: critical
-
+          primary_release_branch: master
+          github_pr_id: ${{github.event.number}}
+          sonar_url: ${{ secrets.SONAR_URL }}
+          sonar_token: ${{ secrets.SONAR_TOKEN }}
+          mvn_settings_filepath: '.github/maven.settings.xml'
   build:
     name: Build Module
     needs: update-signature
@@ -41,7 +43,7 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: jahia/jahia-modules-action/build@v2
         with:
           nexus_username: ${{ secrets.NEXUS_USERNAME }}
@@ -54,7 +56,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: jahia/jahia-modules-action/sonar-analysis@v2
         with:
           primary_release_branch: master

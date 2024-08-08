@@ -1,0 +1,5 @@
+node
+node_modules
+tests
+target
+src/main/resources/javascript
