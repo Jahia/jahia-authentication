@@ -7,12 +7,11 @@ import org.jahia.modules.jahiaauth.service.JahiaAuthConstants;
 import org.jahia.modules.jahiaauth.service.JahiaAuthMapperService;
 import org.jahia.modules.jahiaauth.service.MappedProperty;
 import org.jahia.osgi.FrameworkService;
-import org.jahia.params.valves.AuthValveContext;
-import org.jahia.params.valves.BaseAuthValve;
-import org.jahia.params.valves.CookieAuthValveImpl;
+import org.jahia.params.valves.*;
 import org.jahia.pipelines.Pipeline;
 import org.jahia.pipelines.PipelineException;
 import org.jahia.pipelines.valves.ValveContext;
+import org.jahia.services.SpringContextSingleton;
 import org.jahia.services.content.decorator.JCRUserNode;
 import org.jahia.services.preferences.user.UserPreferencesHelper;
 import org.jahia.services.usermanager.JahiaUser;
@@ -134,6 +133,8 @@ public class SSOValve extends BaseAuthValve {
         m.put("user", jahiaUser);
         m.put("authContext", authContext);
         m.put("source", this);
+        BaseLoginEvent event = new BaseLoginEvent(this, jahiaUser, authContext);
+        SpringContextSingleton.getInstance().publishEvent(event);
         FrameworkService.sendEvent("org/jahia/usersgroups/login/LOGIN", m, false);
     }
 
