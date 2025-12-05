@@ -5,7 +5,6 @@ import org.jahia.api.usermanager.JahiaUserManagerService;
 import org.jahia.modules.jahiaauth.service.JahiaAuthConstants;
 import org.jahia.modules.jahiaauth.service.JahiaAuthMapperService;
 import org.jahia.modules.jahiaauth.service.MappedProperty;
-import org.jahia.osgi.BundleUtils;
 import org.jahia.params.valves.AuthValveContext;
 import org.jahia.params.valves.BaseAuthValve;
 import org.jahia.pipelines.Pipeline;
@@ -31,6 +30,7 @@ public class SSOValve extends BaseAuthValve {
     private JahiaUserManagerService jahiaUserManagerService;
     private JahiaAuthMapperService jahiaAuthMapperService;
     private Pipeline authPipeline;
+    private AuthenticationService authenticationService;
 
     public void start() {
         setId("ssoValve");
@@ -71,7 +71,6 @@ public class SSOValve extends BaseAuthValve {
 
         if (userNode != null) {
             try {
-                AuthenticationService authenticationService = BundleUtils.getOsgiService(AuthenticationService.class, null);
                 authenticationService.validateUserNode(userNode.getPath());
                 ok = true;
             } catch (AccountLockedException e) {
@@ -98,7 +97,6 @@ public class SSOValve extends BaseAuthValve {
             logger.debug("User {} logged in.", userNode);
         }
 
-        AuthenticationService authenticationService = BundleUtils.getOsgiService(AuthenticationService.class, null);
         boolean rememberMe = "on".equals(request.getParameter("useCookie"));
         AuthenticationOptions authenticationOptions = AuthenticationOptions.Builder.withDefaults()
                 // the check is performed later in SessionAuthValveImpl
@@ -152,5 +150,9 @@ public class SSOValve extends BaseAuthValve {
 
     public void setAuthPipeline(Pipeline authPipeline) {
         this.authPipeline = authPipeline;
+    }
+
+    public void setAuthenticationService(AuthenticationService authenticationService) {
+        this.authenticationService = authenticationService;
     }
 }
