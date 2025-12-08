@@ -33,7 +33,6 @@
     <bean id="ssoValve" class="org.jahia.modules.jahiaauth.valves.SSOValve" init-method="start" destroy-method="stop">
         <property name="jahiaAuthMapperService" ref="jahiaAuthMapperServiceImpl"/>
         <property name="jahiaUserManagerService" ref="JahiaUserManagerService"/>
-        <property name="settingsBean" ref="settingsBean"/>
         <property name="authPipeline" ref="authPipeline"/>
         <property name="authenticationService" ref="authenticationService"/>
     </bean>
