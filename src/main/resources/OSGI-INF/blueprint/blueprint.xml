@@ -12,6 +12,7 @@
     <reference id="JahiaUserManagerService" interface="org.jahia.api.usermanager.JahiaUserManagerService"
                availability="mandatory"/>
     <reference id="authPipeline" interface="org.jahia.pipelines.Pipeline" filter="(type=authentication)"/>
+    <reference id="authenticationService" interface="org.jahia.services.security.AuthenticationService"/>
 
     <service id="jahiaAuthMapperServiceOsgi" ref="jahiaAuthMapperServiceImpl"
              interface="org.jahia.modules.jahiaauth.service.JahiaAuthMapperService"/>
@@ -32,8 +33,8 @@
     <bean id="ssoValve" class="org.jahia.modules.jahiaauth.valves.SSOValve" init-method="start" destroy-method="stop">
         <property name="jahiaAuthMapperService" ref="jahiaAuthMapperServiceImpl"/>
         <property name="jahiaUserManagerService" ref="JahiaUserManagerService"/>
-        <property name="settingsBean" ref="settingsBean"/>
         <property name="authPipeline" ref="authPipeline"/>
+        <property name="authenticationService" ref="authenticationService"/>
     </bean>
 
     <service interface="org.jahia.bin.Action">
@@ -51,7 +52,7 @@
             <property name="requiredPermission" value="canSetupJahiaAuth"/>
             <property name="settingsService" ref="settingsService"/>
         </bean>
-    </service>    
+    </service>
 
     <service interface="org.jahia.bin.Action">
         <bean class="org.jahia.modules.jahiaauth.action.ReadMappers">
@@ -60,7 +61,7 @@
             <property name="settingsService" ref="settingsService"/>
         </bean>
     </service>
-    
+
     <service interface="org.jahia.bin.Action">
         <bean class="org.jahia.modules.jahiaauth.action.WriteMappers">
             <property name="name" value="writeMappersAction"/>

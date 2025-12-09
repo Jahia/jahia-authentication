@@ -1,42 +1,36 @@
 package org.jahia.modules.jahiaauth.valves;
 
-import org.jahia.api.Constants;
 import org.jahia.api.settings.SettingsBean;
 import org.jahia.api.usermanager.JahiaUserManagerService;
 import org.jahia.modules.jahiaauth.service.JahiaAuthConstants;
 import org.jahia.modules.jahiaauth.service.JahiaAuthMapperService;
 import org.jahia.modules.jahiaauth.service.MappedProperty;
-import org.jahia.osgi.FrameworkService;
 import org.jahia.params.valves.AuthValveContext;
 import org.jahia.params.valves.BaseAuthValve;
-import org.jahia.params.valves.CookieAuthValveImpl;
 import org.jahia.pipelines.Pipeline;
 import org.jahia.pipelines.PipelineException;
 import org.jahia.pipelines.valves.ValveContext;
 import org.jahia.services.content.decorator.JCRUserNode;
-import org.jahia.services.preferences.user.UserPreferencesHelper;
-import org.jahia.services.usermanager.JahiaUser;
-import org.jahia.utils.LanguageCodeConverters;
-import org.jahia.utils.Patterns;
+import org.jahia.services.security.AuthenticationOptions;
+import org.jahia.services.security.AuthenticationService;
+import org.jahia.services.security.ConcurrentLoggedInUsersLimitExceededLoginException;
+import org.jahia.services.security.InvalidSessionLoginException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.security.auth.login.AccountLockedException;
+import javax.security.auth.login.AccountNotFoundException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 public class SSOValve extends BaseAuthValve {
     private static final Logger logger = LoggerFactory.getLogger(SSOValve.class);
-    private static String VALVE_RESULT = "login_valve_result";
+    private static final String VALVE_RESULT = "login_valve_result";
 
     private JahiaUserManagerService jahiaUserManagerService;
     private JahiaAuthMapperService jahiaAuthMapperService;
-    private SettingsBean settingsBean;
     private Pipeline authPipeline;
-    private String preserveSessionAttributes = null;
+    private AuthenticationService authenticationService;
 
     public void start() {
         setId("ssoValve");
@@ -76,11 +70,15 @@ public class SSOValve extends BaseAuthValve {
         JCRUserNode userNode = jahiaUserManagerService.lookupUser(userId, siteKey);
 
         if (userNode != null) {
-            if (!userNode.isAccountLocked()) {
+            try {
+                authenticationService.validateUserNode(userNode.getPath());
                 ok = true;
-            } else {
+            } catch (AccountLockedException e) {
                 logger.warn("Login failed: account for user {} is locked.", userNode.getName());
                 request.setAttribute(VALVE_RESULT, "account_locked");
+            } catch (ConcurrentLoggedInUsersLimitExceededLoginException e) {
+                logger.warn("Login failed. Maximum number of logged in users reached for {}", userNode.getName());
+                request.setAttribute(VALVE_RESULT, "logged_in_users_limit_reached");
             }
         } else {
             logger.warn("Login failed. Unknown username {}", userId);
@@ -99,42 +97,29 @@ public class SSOValve extends BaseAuthValve {
             logger.debug("User {} logged in.", userNode);
         }
 
-        // if there are any attributes to conserve between session, let's copy them into a map first
-        Map<String, Serializable> savedSessionAttributes = preserveSessionAttributes(request);
+        boolean rememberMe = "on".equals(request.getParameter("useCookie"));
+        AuthenticationOptions authenticationOptions = AuthenticationOptions.Builder.withDefaults()
+                // the check is performed later in SessionAuthValveImpl
+                .sessionValidityCheckEnabled(false)
+                // pass the "remember me" flag
+                .shouldRememberMe(rememberMe).build();
+        try {
+            authenticationService.authenticate(userNode.getPath(), authenticationOptions, authContext.getRequest(),
+                    authContext.getResponse());
 
-        JahiaUser jahiaUser = userNode.getJahiaUser();
-
-        if (request.getSession(false) != null) {
-            request.getSession().invalidate();
+            // update the cache entry if a new session was created
+            if (!originalSessionId.equals(request.getSession().getId())) {
+                jahiaAuthMapperService.updateCacheEntry(originalSessionId, request.getSession().getId());
+            }
+            request.setAttribute(VALVE_RESULT, "ok");
+        } catch (InvalidSessionLoginException e) {
+            // should not happen as the check is disabled
+            throw new IllegalStateException("Unexpected InvalidSessionLoginException", e);
+        } catch (AccountNotFoundException e) {
+            // can only happen if the user was deleted after the lookup and before the authentication
+            logger.warn("User not found : {}", userNode.getPath());
+            request.setAttribute(VALVE_RESULT, "unknown_user");
         }
-
-        if (!originalSessionId.equals(request.getSession().getId())) {
-            jahiaAuthMapperService.updateCacheEntry(originalSessionId, request.getSession().getId());
-        }
-
-        // if there were saved session attributes, we restore them here.
-        restoreSessionAttributes(request, savedSessionAttributes);
-
-        request.setAttribute(VALVE_RESULT, "ok");
-        authContext.getSessionFactory().setCurrentUser(jahiaUser);
-
-        // do a switch to the user's preferred language
-        if (settingsBean.isConsiderPreferredLanguageAfterLogin()) {
-            Locale preferredUserLocale = UserPreferencesHelper.getPreferredLocale(userNode, LanguageCodeConverters.resolveLocaleForGuest(request));
-            request.getSession().setAttribute(Constants.SESSION_LOCALE, preferredUserLocale);
-        }
-
-        String useCookie = request.getParameter("useCookie");
-        if ((useCookie != null) && ("on".equals(useCookie))) {
-            // the user has indicated he wants to use cookie authentication
-            CookieAuthValveImpl.createAndSendCookie(authContext, userNode, settingsBean.getCookieAuthConfig());
-        }
-
-        Map<String, Object> m = new HashMap<>();
-        m.put("user", jahiaUser);
-        m.put("authContext", authContext);
-        m.put("source", this);
-        FrameworkService.sendEvent("org/jahia/usersgroups/login/LOGIN", m, false);
     }
 
     private String findUserId(Map<String, Map<String, MappedProperty>> allMapperResult) {
@@ -146,30 +131,6 @@ public class SSOValve extends BaseAuthValve {
         return null;
     }
 
-    private Map<String, Serializable> preserveSessionAttributes(HttpServletRequest httpServletRequest) {
-        Map<String, Serializable> savedSessionAttributes = new HashMap<>();
-        if ((preserveSessionAttributes != null) && (httpServletRequest.getSession(false) != null) && (preserveSessionAttributes.length() > 0)) {
-            String[] sessionAttributeNames = Patterns.TRIPLE_HASH.split(preserveSessionAttributes);
-            HttpSession session = httpServletRequest.getSession(false);
-            for (String sessionAttributeName : sessionAttributeNames) {
-                Object attributeValue = session.getAttribute(sessionAttributeName);
-                if (attributeValue instanceof Serializable) {
-                    savedSessionAttributes.put(sessionAttributeName, (Serializable) attributeValue);
-                }
-            }
-        }
-        return savedSessionAttributes;
-    }
-
-    private void restoreSessionAttributes(HttpServletRequest httpServletRequest, Map<String, Serializable> savedSessionAttributes) {
-        if (savedSessionAttributes.size() > 0) {
-            HttpSession session = httpServletRequest.getSession();
-            for (Map.Entry<String, Serializable> savedSessionAttribute : savedSessionAttributes.entrySet()) {
-                session.setAttribute(savedSessionAttribute.getKey(), savedSessionAttribute.getValue());
-            }
-        }
-    }
-
     public void setJahiaAuthMapperService(JahiaAuthMapperService jahiaAuthMapperService) {
         this.jahiaAuthMapperService = jahiaAuthMapperService;
     }
@@ -178,12 +139,20 @@ public class SSOValve extends BaseAuthValve {
         this.jahiaUserManagerService = jahiaUserManagerService;
     }
 
+    /**
+     *
+     * @deprecated not used anymore
+     */
+    @Deprecated(since = "8.2.3.0", forRemoval = true)
     public void setSettingsBean(SettingsBean settingsBean) {
-        this.settingsBean = settingsBean;
-        this.preserveSessionAttributes = settingsBean.getString("preserveSessionAttributesOnLogin", "wemSessionId");
+        // ignored
     }
 
     public void setAuthPipeline(Pipeline authPipeline) {
         this.authPipeline = authPipeline;
+    }
+
+    public void setAuthenticationService(AuthenticationService authenticationService) {
+        this.authenticationService = authenticationService;
     }
 }
