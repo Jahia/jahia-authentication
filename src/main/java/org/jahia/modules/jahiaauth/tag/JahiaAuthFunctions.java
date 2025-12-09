@@ -47,6 +47,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jahia.api.templates.JahiaTemplateManagerService;
 import org.jahia.data.templates.JahiaTemplatesPackage;
 import org.jahia.exceptions.JahiaException;
+import org.jahia.osgi.BundleUtils;
 
 import java.util.List;
 
@@ -54,9 +55,9 @@ import java.util.List;
  * @author dgaillard
  */
 public class JahiaAuthFunctions {
-    private static JahiaTemplateManagerService jahiaTemplateManagerService;
 
     public static Boolean isModuleActiveOnSite(String siteKey, String path) throws JahiaException {
+        JahiaTemplateManagerService jahiaTemplateManagerService = BundleUtils.getOsgiService(JahiaTemplateManagerService.class, null);
         List<JahiaTemplatesPackage> jahiaTemplatesPackageList = jahiaTemplateManagerService.getInstalledModulesForSite(siteKey, false, true,false);
 
         for (JahiaTemplatesPackage jahiaTemplatesPackage : jahiaTemplatesPackageList) {
@@ -68,7 +69,14 @@ public class JahiaAuthFunctions {
         return false;
     }
 
+    /**
+     * Sets the JahiaTemplateManagerService instance.
+     * This method is deprecated and no longer used.
+     *
+     * @param jahiaTemplateManagerService the JahiaTemplateManagerService instance to be set.
+     */
+    @Deprecated(since = "1.9.0", forRemoval = true)
     public void setJahiaTemplateManagerService(JahiaTemplateManagerService jahiaTemplateManagerService) {
-        JahiaAuthFunctions.jahiaTemplateManagerService = jahiaTemplateManagerService;
+        // no longer used
     }
 }

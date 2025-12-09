@@ -49,7 +49,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.jahia.bin.Action;
 import org.jahia.bin.ActionResult;
-import org.jahia.modules.jahiaauth.impl.SettingsServiceImpl;
 import org.jahia.modules.jahiaauth.service.*;
 import org.jahia.services.content.JCRSessionWrapper;
 import org.jahia.services.render.RenderContext;
@@ -57,6 +56,8 @@ import org.jahia.services.render.Resource;
 import org.jahia.services.render.URLResolver;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -67,6 +68,13 @@ import java.util.*;
 /**
  * @author dgaillard
  */
+@Component(
+    service = Action.class,
+    property = {
+        "action.name=writeMappersAction",
+        "action.requiredPermission=canSetupJahiaAuth"
+    }
+)
 public class WriteMappers extends Action {
     public static final String ERROR = "error";
     private SettingsService settingsService;
@@ -117,7 +125,8 @@ public class WriteMappers extends Action {
         return new ActionResult(HttpServletResponse.SC_OK, null, response);
     }
 
-    public void setSettingsService(SettingsServiceImpl settingsService) {
+    @Reference
+    public void setSettingsService(SettingsService settingsService) {
         this.settingsService = settingsService;
     }
 }
