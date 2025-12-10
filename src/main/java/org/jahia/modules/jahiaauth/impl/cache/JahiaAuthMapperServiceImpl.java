@@ -69,8 +69,10 @@ import java.util.stream.Collectors;
 @Component(service = JahiaAuthMapperService.class, immediate = true)
 public class JahiaAuthMapperServiceImpl implements JahiaAuthMapperService {
     private CacheService defaultCacheService;
+
     private CacheService service;
     private SettingsBean settingsBean;
+
     private BundleContext bundleContext;
     private ServiceTracker<Object, Object> serviceTracker;
 
@@ -178,10 +180,5 @@ public class JahiaAuthMapperServiceImpl implements JahiaAuthMapperService {
     @Reference
     public void setSettingsBean(SettingsBean settingsBean) {
         this.settingsBean = settingsBean;
-    }
-
-    @Reference
-    public void setBundleContext(BundleContext bundleContext) {
-        this.bundleContext = bundleContext;
     }
 }

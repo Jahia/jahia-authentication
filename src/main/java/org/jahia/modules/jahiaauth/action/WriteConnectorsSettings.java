@@ -60,6 +60,7 @@ import org.jahia.services.render.URLResolver;
 import org.jahia.tools.files.FileUpload;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
@@ -76,18 +77,18 @@ import java.util.Map;
 /**
  * @author dgaillard
  */
-@Component(
-    service = Action.class,
-    property = {
-        "action.name=writeConnectorsSettingsAction",
-        "action.requiredPermission=canSetupJahiaAuth"
-    }
-)
+@Component(service = Action.class, immediate = true)
 public class WriteConnectorsSettings extends Action {
     public static final String ERROR = "error";
     public static final String REQUIRED_PROPERTIES_ARE_MISSING_IN_THE_REQUEST = "required properties are missing in the request";
     private static final Logger logger = LoggerFactory.getLogger(WriteConnectorsSettings.class);
     private SettingsService settingsService;
+
+    @Activate
+    public void activate() {
+        setName("writeConnectorsSettingsAction");
+        setRequiredPermission("canSetupJahiaAuth");
+    }
 
     @Override
     public ActionResult doExecute(HttpServletRequest req, RenderContext renderContext, Resource resource, JCRSessionWrapper session, Map<String, List<String>> parameters, URLResolver urlResolver) throws Exception {

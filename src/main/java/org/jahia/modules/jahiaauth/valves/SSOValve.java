@@ -8,6 +8,7 @@ import org.jahia.params.valves.AuthValveContext;
 import org.jahia.params.valves.BaseAuthValve;
 import org.jahia.pipelines.Pipeline;
 import org.jahia.pipelines.PipelineException;
+import org.jahia.pipelines.valves.Valve;
 import org.jahia.pipelines.valves.ValveContext;
 import org.jahia.services.content.decorator.JCRUserNode;
 import org.jahia.services.security.AuthenticationOptions;
@@ -26,7 +27,7 @@ import javax.security.auth.login.AccountNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
-@Component(immediate = true)
+@Component(service = Valve.class, immediate = true)
 public class SSOValve extends BaseAuthValve {
     private static final Logger logger = LoggerFactory.getLogger(SSOValve.class);
     private static final String VALVE_RESULT = "login_valve_result";

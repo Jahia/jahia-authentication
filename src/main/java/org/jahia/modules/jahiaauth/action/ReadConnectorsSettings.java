@@ -55,6 +55,7 @@ import org.jahia.services.render.URLResolver;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -66,18 +67,18 @@ import java.util.Map;
 /**
  * @author dgaillard
  */
-@Component(
-    service = Action.class,
-    property = {
-        "action.name=readConnectorsSettingsAction",
-        "action.requiredMethods=GET",
-        "action.requiredPermission=canSetupJahiaAuth"
-    }
-)
+@Component(service = Action.class, immediate = true)
 public class ReadConnectorsSettings extends Action {
     public static final String ERROR = "error";
     public static final String REQUIRED_PROPERTIES_ARE_MISSING_IN_THE_REQUEST = "required properties are missing in the request";
     private SettingsService settingsService;
+
+    @Activate
+    public void activate() {
+        setName("readConnectorsSettingsAction");
+        setRequiredMethods("GET");
+        setRequiredPermission("canSetupJahiaAuth");
+    }
 
     @Override
     public ActionResult doExecute(HttpServletRequest req, RenderContext renderContext, Resource resource, JCRSessionWrapper session, Map<String, List<String>> parameters, URLResolver urlResolver) throws Exception {

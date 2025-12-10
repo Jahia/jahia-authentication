@@ -56,6 +56,7 @@ import org.jahia.services.render.Resource;
 import org.jahia.services.render.URLResolver;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -64,20 +65,19 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.*;
 
-
 /**
  * @author dgaillard
  */
-@Component(
-    service = Action.class,
-    property = {
-        "action.name=writeMappersAction",
-        "action.requiredPermission=canSetupJahiaAuth"
-    }
-)
+@Component(service = Action.class, immediate = true)
 public class WriteMappers extends Action {
     public static final String ERROR = "error";
     private SettingsService settingsService;
+
+    @Activate
+    public void activate() {
+        setName("writeMappersAction");
+        setRequiredPermission("canSetupJahiaAuth");
+    }
 
     @Override
     public ActionResult doExecute(HttpServletRequest req, RenderContext renderContext, Resource resource,

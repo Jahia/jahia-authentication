@@ -56,6 +56,7 @@ import org.jahia.services.render.URLResolver;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -69,16 +70,16 @@ import java.util.stream.Collectors;
 /**
  * @author dgaillard
  */
-@Component(
-    service = Action.class,
-    property = {
-        "action.name=readMappersAction",
-        "action.requiredPermission=canSetupJahiaAuth"
-    }
-)
+@Component(service = Action.class, immediate = true)
 public class ReadMappers extends Action {
     public static final String ERROR = "error";
     private SettingsService settingsService;
+
+    @Activate
+    public void activate() {
+        setName("readMappersAction");
+        setRequiredPermission("canSetupJahiaAuth");
+    }
 
     @Override
     public ActionResult doExecute(HttpServletRequest req, RenderContext renderContext, Resource resource,
