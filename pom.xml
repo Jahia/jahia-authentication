@@ -66,7 +66,6 @@
     </scm>
 
     <properties>
-        <jahia.plugin.version>6.9</jahia.plugin.version>
         <export-package>org.jahia.modules.jahiaauth.service,org.jahia.modules.jahiaauth.action,org.jahia.modules.jahiaauth.tag</export-package>
         <jahia-static-resources>/css,/javascript,/icons</jahia-static-resources>
         <jahia-module-signature>MCwCFFIZCgIsKdnWHPgPjJ2dwJDXBwRRAhQEvY2Ex5qXwvcMQOP36o+l9nfQOQ==</jahia-module-signature>
@@ -117,12 +116,6 @@
     </repositories>
 
     <dependencies>
-        <dependency>
-            <groupId>org.eclipse.gemini.blueprint</groupId>
-            <artifactId>gemini-blueprint-core</artifactId>
-            <version>1.0.2.RELEASE</version>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast-all</artifactId>
