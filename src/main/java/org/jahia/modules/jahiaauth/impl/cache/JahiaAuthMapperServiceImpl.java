@@ -52,6 +52,10 @@ import org.jahia.osgi.BundleUtils;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
 import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
@@ -62,14 +66,19 @@ import java.util.stream.Collectors;
 /**
  * @author dgaillard
  */
+@Component(service = JahiaAuthMapperService.class, immediate = true)
 public class JahiaAuthMapperServiceImpl implements JahiaAuthMapperService {
     private CacheService defaultCacheService;
+
     private CacheService service;
     private SettingsBean settingsBean;
+
     private BundleContext bundleContext;
     private ServiceTracker<Object, Object> serviceTracker;
 
-    public void init() {
+    @Activate
+    public void init(BundleContext bundleContext) {
+        this.bundleContext = bundleContext;
         service = defaultCacheService;
 
         if (settingsBean.isClusterActivated()) {
@@ -94,6 +103,7 @@ public class JahiaAuthMapperServiceImpl implements JahiaAuthMapperService {
         }
     }
 
+    @Deactivate
     public void destroy() {
         if (serviceTracker != null) {
             serviceTracker.close();
@@ -162,15 +172,13 @@ public class JahiaAuthMapperServiceImpl implements JahiaAuthMapperService {
         service.updateCacheEntry(originalSessionId, newSessionId);
     }
 
+    @Reference
     public void setDefaultCacheService(CacheService defaultCacheService) {
         this.defaultCacheService = defaultCacheService;
     }
 
+    @Reference
     public void setSettingsBean(SettingsBean settingsBean) {
         this.settingsBean = settingsBean;
-    }
-
-    public void setBundleContext(BundleContext bundleContext) {
-        this.bundleContext = bundleContext;
     }
 }

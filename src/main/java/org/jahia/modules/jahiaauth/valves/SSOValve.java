@@ -1,6 +1,5 @@
 package org.jahia.modules.jahiaauth.valves;
 
-import org.jahia.api.settings.SettingsBean;
 import org.jahia.api.usermanager.JahiaUserManagerService;
 import org.jahia.modules.jahiaauth.service.JahiaAuthConstants;
 import org.jahia.modules.jahiaauth.service.JahiaAuthMapperService;
@@ -9,12 +8,17 @@ import org.jahia.params.valves.AuthValveContext;
 import org.jahia.params.valves.BaseAuthValve;
 import org.jahia.pipelines.Pipeline;
 import org.jahia.pipelines.PipelineException;
+import org.jahia.pipelines.valves.Valve;
 import org.jahia.pipelines.valves.ValveContext;
 import org.jahia.services.content.decorator.JCRUserNode;
 import org.jahia.services.security.AuthenticationOptions;
 import org.jahia.services.security.AuthenticationService;
 import org.jahia.services.security.ConcurrentLoggedInUsersLimitExceededLoginException;
 import org.jahia.services.security.InvalidSessionLoginException;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,21 +27,31 @@ import javax.security.auth.login.AccountNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
+@Component(service = Valve.class, immediate = true)
 public class SSOValve extends BaseAuthValve {
     private static final Logger logger = LoggerFactory.getLogger(SSOValve.class);
     private static final String VALVE_RESULT = "login_valve_result";
 
+    @Reference
     private JahiaUserManagerService jahiaUserManagerService;
+
+    @Reference
     private JahiaAuthMapperService jahiaAuthMapperService;
+
+    @Reference(target = "(type=authentication)")
     private Pipeline authPipeline;
+
+    @Reference
     private AuthenticationService authenticationService;
 
+    @Activate
     public void start() {
         setId("ssoValve");
         removeValve(authPipeline);
         addValve(authPipeline, -1, null, null);
     }
 
+    @Deactivate
     public void stop() {
         removeValve(authPipeline);
     }
@@ -129,30 +143,5 @@ public class SSOValve extends BaseAuthValve {
             }
         }
         return null;
-    }
-
-    public void setJahiaAuthMapperService(JahiaAuthMapperService jahiaAuthMapperService) {
-        this.jahiaAuthMapperService = jahiaAuthMapperService;
-    }
-
-    public void setJahiaUserManagerService(JahiaUserManagerService jahiaUserManagerService) {
-        this.jahiaUserManagerService = jahiaUserManagerService;
-    }
-
-    /**
-     *
-     * @deprecated not used anymore
-     */
-    @Deprecated(since = "8.2.3.0", forRemoval = true)
-    public void setSettingsBean(SettingsBean settingsBean) {
-        // ignored
-    }
-
-    public void setAuthPipeline(Pipeline authPipeline) {
-        this.authPipeline = authPipeline;
-    }
-
-    public void setAuthenticationService(AuthenticationService authenticationService) {
-        this.authenticationService = authenticationService;
     }
 }

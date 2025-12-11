@@ -47,7 +47,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.jahia.bin.Action;
 import org.jahia.bin.ActionResult;
-import org.jahia.modules.jahiaauth.impl.SettingsServiceImpl;
 import org.jahia.modules.jahiaauth.service.*;
 import org.jahia.osgi.BundleUtils;
 import org.jahia.services.content.JCRSessionWrapper;
@@ -57,18 +56,30 @@ import org.jahia.services.render.URLResolver;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
  * @author dgaillard
  */
+@Component(service = Action.class, immediate = true)
 public class ReadMappers extends Action {
     public static final String ERROR = "error";
     private SettingsService settingsService;
+
+    @Activate
+    public void activate() {
+        setName("readMappersAction");
+        setRequiredPermission("canSetupJahiaAuth");
+    }
 
     @Override
     public ActionResult doExecute(HttpServletRequest req, RenderContext renderContext, Resource resource,
@@ -154,7 +165,8 @@ public class ReadMappers extends Action {
         return new ActionResult(HttpServletResponse.SC_OK, null, response);
     }
 
-    public void setSettingsService(SettingsServiceImpl settingsService) {
+    @Reference
+    public void setSettingsService(SettingsService settingsService) {
         this.settingsService = settingsService;
     }
 }

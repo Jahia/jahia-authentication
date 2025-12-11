@@ -12,6 +12,8 @@ import org.osgi.service.cm.Configuration;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedServiceFactory;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,21 +29,30 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+@Component(
+    service = {SettingsService.class, ManagedServiceFactory.class},
+    property = {"service.pid=org.jahia.modules.auth"},
+    immediate = true
+)
 public class SettingsServiceImpl implements SettingsService, ManagedServiceFactory {
     private static final Logger logger = LoggerFactory.getLogger(SettingsServiceImpl.class);
-    private static final SettingsServiceImpl INSTANCE = new SettingsServiceImpl();
     private Map<String, Settings> settingsBySiteKeyMap = new HashMap<>();
     private Map<String, Settings> settingsByPid = new HashMap<>();
     private ConfigurationAdmin configurationAdmin;
 
-    private SettingsServiceImpl() {
-        super();
-    }
-
+    /**
+     * Retrieves an instance of the {@link SettingsServiceImpl} class.
+     * This method is deprecated and will be removed in a future release.
+     *
+     * @return an instance of {@link SettingsServiceImpl} obtained via the OSGi service framework
+     * @deprecated use OSGi Declaration Services (DS) to inject the {@link SettingsService} component instead.
+     */
+    @Deprecated(since = "1.9.0", forRemoval = true)
     public static SettingsServiceImpl getInstance() {
-        return INSTANCE;
+        return (SettingsServiceImpl) BundleUtils.getOsgiService(SettingsService.class, null);
     }
 
+    @Reference
     public void setConfigurationAdmin(ConfigurationAdmin configurationAdmin) {
         this.configurationAdmin = configurationAdmin;
     }

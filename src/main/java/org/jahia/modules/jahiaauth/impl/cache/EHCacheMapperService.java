@@ -49,12 +49,15 @@ import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.Element;
 import net.sf.ehcache.config.CacheConfiguration;
 import org.apache.commons.lang.StringUtils;
-import org.jahia.modules.jahiaauth.service.JahiaAuthMapperService;
 import org.jahia.modules.jahiaauth.service.JahiaAuthConstants;
 import org.jahia.modules.jahiaauth.service.MappedProperty;
 import org.jahia.services.cache.CacheHelper;
 import org.jahia.services.cache.CacheProvider;
 import org.jahia.services.cache.ModuleClassLoaderAwareCacheEntry;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Reference;
 
 import java.util.HashMap;
 import java.util.List;
@@ -63,11 +66,13 @@ import java.util.Map;
 /**
  * @author dgaillard
  */
+@Component(service = CacheService.class, immediate = true)
 public class EHCacheMapperService implements CacheService {
     private CacheProvider ehCacheProvider;
     private CacheManager cacheManager;
     private Ehcache userCache;
 
+    @Activate
     public void init() {
         cacheManager = ehCacheProvider.getCacheManager();
         userCache = cacheManager.getCache(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE);
@@ -85,6 +90,7 @@ public class EHCacheMapperService implements CacheService {
         }
     }
 
+    @Deactivate
     public void destroy() {
         // flush
         if (userCache != null) {
@@ -133,6 +139,7 @@ public class EHCacheMapperService implements CacheService {
         }
     }
 
+    @Reference
     public void setEhCacheProvider(CacheProvider ehCacheProvider) {
         this.ehCacheProvider = ehCacheProvider;
     }
