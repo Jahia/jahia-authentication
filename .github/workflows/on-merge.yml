@@ -1,12 +1,12 @@
-# This workflow is triggered every time a change is pushed to any branches
+# This workflow is triggered every time a change is pushed to the 1_x maintenance branch
 # Github actions command reference: https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions
-name: On merge to master
+name: On merge to 1.x
 
 # The workflow could also be triggered on PRs
 on:
   push:
     branches:
-      - 'master'
+      - '1_x'
     tags-ignore:
       - '**'
 
@@ -47,7 +47,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     container:
-      image: cyclonedx/cyclonedx-cli:0.24.2   
+      image: cyclonedx/cyclonedx-cli:0.24.2
     steps:
       - uses: jahia/jahia-modules-action/sbom-processing@v2
         with:
@@ -58,7 +58,7 @@ jobs:
   publish:
     name: Publish module
     needs: build
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/1_x'
     runs-on: ubuntu-latest
     env:
       NEXUS_INTERNAL_URL: https://devtools.jahia.com/nexus/content/groups/internal/
