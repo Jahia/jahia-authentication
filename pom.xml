@@ -54,7 +54,7 @@
 
     <artifactId>jahia-authentication</artifactId>
     <name>Jahia Authentication</name>
-    <version>1.9.0-SNAPSHOT</version>
+    <version>2.0.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <description>This is the custom module (Jahia OAuth) for running on a Digital Experience Manager server.</description>
 
@@ -68,7 +68,7 @@
     <properties>
         <export-package>org.jahia.modules.jahiaauth.service,org.jahia.modules.jahiaauth.action,org.jahia.modules.jahiaauth.tag</export-package>
         <jahia-static-resources>/css,/javascript,/icons</jahia-static-resources>
-        <jahia-module-signature>MCwCFFIZCgIsKdnWHPgPjJ2dwJDXBwRRAhQEvY2Ex5qXwvcMQOP36o+l9nfQOQ==</jahia-module-signature>
+        <jahia-module-signature>MCwCFEyTvPiYOs19tEURxHlAyv/feN+TAhRrjAB+dt2AowafE90v7TcEPCNHfg==</jahia-module-signature>
         <jahia.modules.importPackage>!com.hazelcast.config,!com.hazelcast.core</jahia.modules.importPackage>
         <sonar.sources>src/main/resources/javascript</sonar.sources>
         <yarn.arguments>build:production</yarn.arguments>
