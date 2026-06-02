@@ -83,22 +83,22 @@
                 <enabled>true</enabled>
                 <updatePolicy>never</updatePolicy>
             </releases>
-            <s>
+            <snapshots>
                 <enabled>true</enabled>
-            </s>
+            </snapshots>
         </repository>
         <repository>
-            <id>oauth-s</id>
-            <name>Jahia OAuth s</name>
-            <url>https://devtools.jahia.com/nexus/content/repositories/oauth-s/</url>
+            <id>oauth-snapshots</id>
+            <name>Jahia OAuth Snapshots</name>
+            <url>https://devtools.jahia.com/nexus/content/repositories/oauth-snapshots/</url>
             <releases>
                 <enabled>false</enabled>
                 <updatePolicy>never</updatePolicy>
             </releases>
-            <s>
+            <snapshots>
                 <enabled>true</enabled>
                 <updatePolicy>always</updatePolicy>
-            </s>
+            </snapshots>
         </repository>
         <repository>
             <id>oauth-releases</id>
@@ -108,10 +108,10 @@
                 <enabled>true</enabled>
                 <updatePolicy>never</updatePolicy>
             </releases>
-            <s>
+            <snapshots>
                 <enabled>false</enabled>
                 <updatePolicy>always</updatePolicy>
-            </s>
+            </snapshots>
         </repository>
     </repositories>
 
