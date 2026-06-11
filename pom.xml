@@ -68,7 +68,7 @@
     <properties>
         <export-package>org.jahia.modules.jahiaauth.service,org.jahia.modules.jahiaauth.action,org.jahia.modules.jahiaauth.tag</export-package>
         <jahia-static-resources>/css,/javascript,/icons</jahia-static-resources>
-        <jahia-module-signature>MCwCFEyTvPiYOs19tEURxHlAyv/feN+TAhRrjAB+dt2AowafE90v7TcEPCNHfg==</jahia-module-signature>
+        <jahia-module-signature>MCwCFHdv28Pc4KanNEedrmOGle9GIhlkAhQgx3ekiAZQx3kd1i613lmgbAfyzQ==</jahia-module-signature>
         <jahia.modules.importPackage>!com.hazelcast.config,!com.hazelcast.core</jahia.modules.importPackage>
         <sonar.sources>src/main/resources/javascript</sonar.sources>
         <yarn.arguments>build:production</yarn.arguments>
