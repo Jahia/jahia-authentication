@@ -26,7 +26,7 @@
     }
   },
   "dependencies": {
-    "@jahia/ui-extender": "^1.0.7"
+    "@jahia/ui-extender": "^1.1.1"
   },
   "resolutions": {
     "css-loader/loader-utils": "^1.4.2",
