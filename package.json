@@ -1,6 +1,6 @@
 {
   "name": "@jahia/jahia-authentication",
-  "version": "9.8.1-SNAPSHOT",
+  "version": "2.0.0-SNAPSHOT",
   "scripts": {
     "test": "jest --run-in-band --coverage  ./src/javascript",
     "tests:unit": "jest --env=jsdom --runInBand --coverage  ./src/javascript",
@@ -52,6 +52,7 @@
     "copy-webpack-plugin": "^12.0.2",
     "css-loader": "^7.1.2",
     "file-loader": "^6.2.0",
+    "sync-pom-version-to-package": "1.6.1",
     "webpack": "^5.93.0",
     "webpack-bundle-analyzer": "^4.10.2",
     "webpack-cli": "^5.1.4"
