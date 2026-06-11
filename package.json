@@ -1,6 +1,6 @@
 {
   "name": "@jahia/jahia-authentication",
-  "version": "2.0.0",
+  "version": "2.1.0-SNAPSHOT",
   "scripts": {
     "test": "jest --run-in-band --coverage  ./src/javascript",
     "tests:unit": "jest --env=jsdom --runInBand --coverage  ./src/javascript",
