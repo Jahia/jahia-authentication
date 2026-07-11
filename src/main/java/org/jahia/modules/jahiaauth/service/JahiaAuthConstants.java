@@ -50,6 +50,7 @@ package org.jahia.modules.jahiaauth.service;
  */
 public class JahiaAuthConstants {
     public static final String JAHIA_AUTH_USER_CACHE = "JahiaAuthUserCache";
+    public static final String JAHIA_AUTH_FLOW_STATE_CACHE = "JahiaAuthFlowStateCache";
     public static final String SSO_LOGIN = "ssoLoginId";
     public static final String SITE_KEY = "siteKey";
     public static final String MAPPER_SERVICE_NAME = "mapperServiceName";

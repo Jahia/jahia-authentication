@@ -86,4 +86,28 @@ public interface JahiaAuthMapperService {
      * @param newSessionId String of the new session ID
      */
     void updateCacheEntry(String originalSessionId, String newSessionId);
+
+    /**
+     * Store a short-lived opaque String value under an exact key, in a cache separate from the mapper
+     * results and shared cluster-wide when clustering is active. Intended for transient authentication-flow
+     * values (e.g. an OAuth {@code state} token bound to a session id) that must be retrievable on any node
+     * without relying on HTTP session replication or load-balancer stickiness.
+     *
+     * @param cacheKey exact key
+     * @param value    value to store (expires after the cache TTL)
+     */
+    void cacheValue(String cacheKey, String value);
+
+    /**
+     * @param cacheKey exact key
+     * @return the value stored via {@link #cacheValue(String, String)}, or {@code null} if absent/expired
+     */
+    String getCachedValue(String cacheKey);
+
+    /**
+     * Remove a value stored via {@link #cacheValue(String, String)} — for single-use consumption.
+     *
+     * @param cacheKey exact key
+     */
+    void invalidate(String cacheKey);
 }

@@ -172,6 +172,21 @@ public class JahiaAuthMapperServiceImpl implements JahiaAuthMapperService {
         service.updateCacheEntry(originalSessionId, newSessionId);
     }
 
+    @Override
+    public void cacheValue(String cacheKey, String value) {
+        service.cacheValue(cacheKey, value);
+    }
+
+    @Override
+    public String getCachedValue(String cacheKey) {
+        return service.getCachedValue(cacheKey);
+    }
+
+    @Override
+    public void invalidate(String cacheKey) {
+        service.invalidate(cacheKey);
+    }
+
     @Reference
     public void setDefaultCacheService(CacheService defaultCacheService) {
         this.defaultCacheService = defaultCacheService;

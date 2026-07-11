@@ -71,23 +71,29 @@ public class EHCacheMapperService implements CacheService {
     private CacheProvider ehCacheProvider;
     private CacheManager cacheManager;
     private Ehcache userCache;
+    private Ehcache flowStateCache;
 
     @Activate
     public void init() {
         cacheManager = ehCacheProvider.getCacheManager();
-        userCache = cacheManager.getCache(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE);
+        userCache = getOrCreateCache(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE);
+        flowStateCache = getOrCreateCache(JahiaAuthConstants.JAHIA_AUTH_FLOW_STATE_CACHE);
+    }
 
-        if (userCache == null) {
+    private Ehcache getOrCreateCache(String cacheName) {
+        Ehcache cache = cacheManager.getCache(cacheName);
+        if (cache == null) {
             CacheConfiguration cacheConfiguration = new CacheConfiguration();
-            cacheConfiguration.setName(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE);
+            cacheConfiguration.setName(cacheName);
             cacheConfiguration.setTimeToLiveSeconds(180);
             // Create a new cache with the configuration
             Ehcache ehcache = new Cache(cacheConfiguration);
-            ehcache.setName(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE);
+            ehcache.setName(cacheName);
             // Cache name has been set now we can initialize it by putting it in the manager.
             // Only Cache manager is initializing caches.
-            userCache = cacheManager.addCacheIfAbsent(ehcache);
+            cache = cacheManager.addCacheIfAbsent(ehcache);
         }
+        return cache;
     }
 
     @Deactivate
@@ -96,8 +102,12 @@ public class EHCacheMapperService implements CacheService {
         if (userCache != null) {
             userCache.removeAll();
         }
+        if (flowStateCache != null) {
+            flowStateCache.removeAll();
+        }
 
         cacheManager.removeCache(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE);
+        cacheManager.removeCache(JahiaAuthConstants.JAHIA_AUTH_FLOW_STATE_CACHE);
     }
 
     @Override
@@ -137,6 +147,22 @@ public class EHCacheMapperService implements CacheService {
                 }
             }
         }
+    }
+
+    @Override
+    public void cacheValue(String cacheKey, String value) {
+        flowStateCache.put(new Element(cacheKey, value));
+    }
+
+    @Override
+    public String getCachedValue(String cacheKey) {
+        Element element = flowStateCache.get(cacheKey);
+        return element != null ? (String) element.getObjectValue() : null;
+    }
+
+    @Override
+    public void invalidate(String cacheKey) {
+        flowStateCache.remove(cacheKey);
     }
 
     @Reference

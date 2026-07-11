@@ -65,6 +65,8 @@ public class ClusteredMapperService implements CacheService {
         Config config = hazelcastInstance.getConfig();
         MapConfig mapConfig = new MapConfig(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE).setTimeToLiveSeconds(180);
         config.addMapConfig(mapConfig);
+        MapConfig flowStateMapConfig = new MapConfig(JahiaAuthConstants.JAHIA_AUTH_FLOW_STATE_CACHE).setTimeToLiveSeconds(180);
+        config.addMapConfig(flowStateMapConfig);
     }
 
     @Override
@@ -113,5 +115,20 @@ public class ClusteredMapperService implements CacheService {
                 });
             }
         }
+    }
+
+    @Override
+    public void cacheValue(String cacheKey, String value) {
+        hazelcastInstance.getMap(JahiaAuthConstants.JAHIA_AUTH_FLOW_STATE_CACHE).set(cacheKey, value);
+    }
+
+    @Override
+    public String getCachedValue(String cacheKey) {
+        return (String) hazelcastInstance.getMap(JahiaAuthConstants.JAHIA_AUTH_FLOW_STATE_CACHE).get(cacheKey);
+    }
+
+    @Override
+    public void invalidate(String cacheKey) {
+        hazelcastInstance.getMap(JahiaAuthConstants.JAHIA_AUTH_FLOW_STATE_CACHE).remove(cacheKey);
     }
 }
