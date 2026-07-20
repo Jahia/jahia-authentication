@@ -88,7 +88,7 @@ public class ClusteredMapperService implements CacheService {
         Map<String, Map<String, MappedProperty>> res = new HashMap<>();
         for (Object key : hazelcastInstance.getMap(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE).keySet()) {
             String keyAsString = (String) key;
-            if (StringUtils.endsWith(keyAsString, sessionId)) {
+            if (StringUtils.endsWith(keyAsString, "_" + sessionId)) {
                 String mapper = StringUtils.substringBefore(keyAsString, "_" + sessionId);
                 Map<String, MappedProperty> mapperResult = ClassLoaderUtils.executeWith(ClusteredMapperService.class.getClassLoader(), () ->
                     (Map<String, MappedProperty>) hazelcastInstance.getMap(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE).get(key)
@@ -103,7 +103,7 @@ public class ClusteredMapperService implements CacheService {
     public void updateCacheEntry(String originalSessionId, String newSessionId) {
         for (Object key : hazelcastInstance.getMap(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE).keySet()) {
             String keyAsString = (String) key;
-            if (StringUtils.endsWith(keyAsString, originalSessionId)) {
+            if (StringUtils.endsWith(keyAsString, "_" + originalSessionId)) {
                 String newKey = StringUtils.substringBefore(keyAsString, originalSessionId) + newSessionId;
                 ClassLoaderUtils.executeWith(ClusteredMapperService.class.getClassLoader(), () -> {
                     Map<String, MappedProperty> mapperResult = (Map<String, MappedProperty>) hazelcastInstance.getMap(JahiaAuthConstants.JAHIA_AUTH_USER_CACHE).get(key);
