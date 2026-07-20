@@ -109,7 +109,7 @@ public class EHCacheMapperService implements CacheService {
     public Map<String, Map<String, MappedProperty>> getMapperResultsForSession(String sessionId) {
         Map<String, Map<String, MappedProperty>> res = new HashMap<>();
         for (String key : (List<String>) userCache.getKeys()) {
-            if (StringUtils.endsWith(key, sessionId)) {
+            if (StringUtils.endsWith(key, "_" + sessionId)) {
                 String mapper = StringUtils.substringBefore(key, "_" + sessionId);
                 Map<String, MappedProperty> mapperResults = getCachedMapperResults(key);
                 if (mapperResults != null) {
@@ -123,7 +123,7 @@ public class EHCacheMapperService implements CacheService {
     @Override
     public void updateCacheEntry(String originalSessionId, String newSessionId) {
         for (String key : (List<String>) userCache.getKeys()) {
-            if (StringUtils.endsWith(key, originalSessionId)) {
+            if (StringUtils.endsWith(key, "_" + originalSessionId)) {
                 String newKey = StringUtils.substringBefore(key, originalSessionId) + newSessionId;
                 Map<String, MappedProperty> mapperResults = getCachedMapperResults(key);
                 if (mapperResults != null) {
