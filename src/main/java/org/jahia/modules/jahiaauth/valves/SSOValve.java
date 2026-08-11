@@ -32,6 +32,7 @@ import java.util.Map;
 public class SSOValve extends BaseAuthValve {
     private static final Logger logger = LoggerFactory.getLogger(SSOValve.class);
     private static final String VALVE_RESULT = "login_valve_result";
+    private static final String UNKNOWN_USER = "unknown_user";
 
     @Reference
     private JahiaUserManagerService jahiaUserManagerService;
@@ -85,10 +86,10 @@ public class SSOValve extends BaseAuthValve {
 
         if (userNode == null) {
             logger.warn("Login failed. Unknown username {}", identity.getUserId());
-            request.setAttribute(VALVE_RESULT, "unknown_user");
+            request.setAttribute(VALVE_RESULT, UNKNOWN_USER);
         } else if (userNode.isRoot() || Constants.GUEST_USERNAME.equals(userNode.getName())) {
             logger.warn("Login failed. User {} is not resolvable through an authentication connector.", userNode.getName());
-            request.setAttribute(VALVE_RESULT, "unknown_user");
+            request.setAttribute(VALVE_RESULT, UNKNOWN_USER);
         } else {
             try {
                 authenticationService.validateUserNode(userNode.getPath());
@@ -135,7 +136,7 @@ public class SSOValve extends BaseAuthValve {
         } catch (AccountNotFoundException e) {
             // can only happen if the user was deleted after the lookup and before the authentication
             logger.warn("User not found : {}", userNode.getPath());
-            request.setAttribute(VALVE_RESULT, "unknown_user");
+            request.setAttribute(VALVE_RESULT, UNKNOWN_USER);
         }
     }
 
