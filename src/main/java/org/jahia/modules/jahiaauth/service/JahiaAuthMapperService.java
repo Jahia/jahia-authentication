@@ -53,13 +53,30 @@ import java.util.Map;
 public interface JahiaAuthMapperService {
     /**
      * This method will register the results for the mapper in the cache during 180 seconds
-     * @param cacheKey String the cache key built using the user session ID and the mapper service name
-     * @param mapperResult HashMap that contains the result for the mapper
+     * <p>
+     * A cached result is expected to carry, under {@link JahiaAuthConstants#SITE_KEY}, the site key the
+     * connector that produced it is configured on: that is the site an account is resolved against when
+     * the entry is later used to log a user in. {@link #executeMapper} records it for you. An entry cached
+     * through this method without it resolves accounts at server level only, so a connector seeding the
+     * cache directly should set it from its own {@link MapperConfig#getSiteKey()}.
+     *
+     * @param mapperServiceName the mapper service name, which the cache key is built from together with the session ID
+     * @param sessionId the user session ID
+     * @param mapperResult map that contains the result for the mapper
      */
     void cacheMapperResults(String mapperServiceName, String sessionId, Map<String, MappedProperty> mapperResult);
 
     Map<String, MappedProperty> getCachedMapperResults(String mapperServiceName, String sessionId);
 
+    /**
+     * Runs the mapper for a connector's results and caches them, recording the connector's configured
+     * site key on the cached entry — the preferred entry point over {@link #cacheMapperResults}.
+     *
+     * @param sessionId the user session ID
+     * @param mapperConfig the mapper configuration, which carries the connector's site key
+     * @param connectorProperties the properties the connector obtained from the identity provider
+     * @throws JahiaAuthException if a mandatory mapped property is missing
+     */
     void executeMapper(String sessionId, MapperConfig mapperConfig, Map<String, Object> connectorProperties) throws JahiaAuthException;
 
     /**

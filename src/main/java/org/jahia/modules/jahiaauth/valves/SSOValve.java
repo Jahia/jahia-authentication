@@ -1,6 +1,5 @@
 package org.jahia.modules.jahiaauth.valves;
 
-import org.jahia.api.Constants;
 import org.jahia.api.usermanager.JahiaUserManagerService;
 import org.jahia.modules.jahiaauth.service.JahiaAuthConstants;
 import org.jahia.modules.jahiaauth.service.JahiaAuthMapperService;
@@ -70,6 +69,8 @@ public class SSOValve extends BaseAuthValve {
 
         String originalSessionId = request.getSession().getId();
         Map<String, Map<String, MappedProperty>> allMapperResult = jahiaAuthMapperService.getMapperResultsForSession(originalSessionId);
+        // the site parameter gates whether the valve runs; its value scopes nothing — the site an
+        // account is resolved against comes from the cached mapper result (see lookupUser below)
         if (allMapperResult == null || !request.getParameterMap().containsKey("site")) {
             valveContext.invokeNext(context);
             return;
@@ -87,7 +88,9 @@ public class SSOValve extends BaseAuthValve {
         if (userNode == null) {
             logger.warn("Login failed. Unknown username {}", identity.getUserId());
             request.setAttribute(VALVE_RESULT, UNKNOWN_USER);
-        } else if (userNode.isRoot() || Constants.GUEST_USERNAME.equals(userNode.getName())) {
+        } else if (userNode.isRoot() || org.jahia.services.usermanager.JahiaUserManagerService.isGuest(userNode)) {
+            // both definitions come from core, and the asymmetry is core's: isRoot() compares the node
+            // identity, isGuest() the name
             logger.warn("Login failed. User {} is not resolvable through an authentication connector.", userNode.getName());
             request.setAttribute(VALVE_RESULT, UNKNOWN_USER);
         } else {
@@ -151,6 +154,10 @@ public class SSOValve extends BaseAuthValve {
     /**
      * Reads the login id and its site key from a single mapper result, so both describe the same
      * connector.
+     * <p>
+     * A session holds one cached result per mapper, so several may carry a login id — one per
+     * connector the session authenticated through. The first one found wins, and the map is unordered,
+     * so which one that is is not defined; each is an identity the session did authenticate as.
      *
      * @param allMapperResult the mapper results cached for the session
      * @return the identity to log in, or {@code null} when no mapper result holds a login id

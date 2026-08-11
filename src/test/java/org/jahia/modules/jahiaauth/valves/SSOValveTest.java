@@ -42,7 +42,10 @@ public class SSOValveTest {
 
     @Test
     public void shouldPairTheLoginIdWithTheSiteKeyOfItsOwnMapperResult() {
-        // several connectors may have cached a result for the same session
+        // Several connectors may have cached a result for the same session, and only some of them carry
+        // a login id. Exactly one does here, so the expected pair is defined whatever the iteration
+        // order: the LinkedHashMap is for readability only — the real map is an unordered HashMap, and
+        // which entry wins when SEVERAL carry a login id is deliberately not specified.
         Map<String, Map<String, MappedProperty>> allMapperResult = new LinkedHashMap<>();
         allMapperResult.put("profileMapper", mapperResult(null, "otherSite"));
         allMapperResult.put("jcrOAuthProvider", mapperResult("jdoe", "digitall"));

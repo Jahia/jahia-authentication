@@ -118,10 +118,14 @@ public class JahiaAuthMapperServiceImpl implements JahiaAuthMapperService {
             mapper.executeMapper(mapperResult, mapperConfig);
         }
         // the cached result carries the site key the connector is configured on, so consumers of the
-        // cache entry resolve against the same site the mapper itself did
+        // cache entry resolve against the same site the mapper itself did. A mapping may be configured
+        // onto the siteKey property, and a connector may pass one along, so the configured value is
+        // the only one that stands: when there is none, the entry carries no site key at all.
         if (mapperConfig.getSiteKey() != null) {
             mapperResult.put(JahiaAuthConstants.SITE_KEY, new MappedProperty(
                     new MappedPropertyInfo(JahiaAuthConstants.SITE_KEY, "string", null, false), mapperConfig.getSiteKey()));
+        } else {
+            mapperResult.remove(JahiaAuthConstants.SITE_KEY);
         }
         cacheMapperResults(mapperConfig.getMapperName(), sessionId, mapperResult);
     }
