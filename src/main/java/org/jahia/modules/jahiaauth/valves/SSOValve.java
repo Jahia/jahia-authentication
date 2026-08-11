@@ -1,5 +1,6 @@
 package org.jahia.modules.jahiaauth.valves;
 
+import org.jahia.api.Constants;
 import org.jahia.api.usermanager.JahiaUserManagerService;
 import org.jahia.modules.jahiaauth.service.JahiaAuthConstants;
 import org.jahia.modules.jahiaauth.service.JahiaAuthMapperService;
@@ -73,17 +74,22 @@ public class SSOValve extends BaseAuthValve {
             return;
         }
 
-        String userId = findUserId(allMapperResult);
-        if (userId == null) {
+        SsoIdentity identity = findIdentity(allMapperResult);
+        if (identity == null) {
             valveContext.invokeNext(context);
             return;
         }
 
         boolean ok = false;
-        String siteKey = request.getParameter("site");
-        JCRUserNode userNode = jahiaUserManagerService.lookupUser(userId, siteKey);
+        JCRUserNode userNode = lookupUser(identity);
 
-        if (userNode != null) {
+        if (userNode == null) {
+            logger.warn("Login failed. Unknown username {}", identity.getUserId());
+            request.setAttribute(VALVE_RESULT, "unknown_user");
+        } else if (userNode.isRoot() || Constants.GUEST_USERNAME.equals(userNode.getName())) {
+            logger.warn("Login failed. User {} is not resolvable through an authentication connector.", userNode.getName());
+            request.setAttribute(VALVE_RESULT, "unknown_user");
+        } else {
             try {
                 authenticationService.validateUserNode(userNode.getPath());
                 ok = true;
@@ -94,9 +100,6 @@ public class SSOValve extends BaseAuthValve {
                 logger.warn("Login failed. Maximum number of logged in users reached for {}", userNode.getName());
                 request.setAttribute(VALVE_RESULT, "logged_in_users_limit_reached");
             }
-        } else {
-            logger.warn("Login failed. Unknown username {}", userId);
-            request.setAttribute(VALVE_RESULT, "unknown_user");
         }
 
         if (ok) {
@@ -136,12 +139,47 @@ public class SSOValve extends BaseAuthValve {
         }
     }
 
-    private String findUserId(Map<String, Map<String, MappedProperty>> allMapperResult) {
+    private JCRUserNode lookupUser(SsoIdentity identity) {
+        // the site the connector is configured on scopes the lookup; with none recorded, only
+        // server-level users are reachable
+        return identity.getSiteKey() != null
+                ? jahiaUserManagerService.lookupUser(identity.getUserId(), identity.getSiteKey())
+                : jahiaUserManagerService.lookupUser(identity.getUserId());
+    }
+
+    /**
+     * Reads the login id and its site key from a single mapper result, so both describe the same
+     * connector.
+     *
+     * @param allMapperResult the mapper results cached for the session
+     * @return the identity to log in, or {@code null} when no mapper result holds a login id
+     */
+    static SsoIdentity findIdentity(Map<String, Map<String, MappedProperty>> allMapperResult) {
         for (Map<String, MappedProperty> mapperResult : allMapperResult.values()) {
-            if (mapperResult.containsKey(JahiaAuthConstants.SSO_LOGIN)) {
-                return (String) mapperResult.get(JahiaAuthConstants.SSO_LOGIN).getValue();
+            MappedProperty login = mapperResult.get(JahiaAuthConstants.SSO_LOGIN);
+            if (login != null && login.getValue() != null) {
+                MappedProperty site = mapperResult.get(JahiaAuthConstants.SITE_KEY);
+                return new SsoIdentity((String) login.getValue(), site != null ? (String) site.getValue() : null);
             }
         }
         return null;
+    }
+
+    static final class SsoIdentity {
+        private final String userId;
+        private final String siteKey;
+
+        SsoIdentity(String userId, String siteKey) {
+            this.userId = userId;
+            this.siteKey = siteKey;
+        }
+
+        String getUserId() {
+            return userId;
+        }
+
+        String getSiteKey() {
+            return siteKey;
+        }
     }
 }
