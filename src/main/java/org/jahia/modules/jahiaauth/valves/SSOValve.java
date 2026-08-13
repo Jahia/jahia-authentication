@@ -101,9 +101,7 @@ public class SSOValve extends BaseAuthValve {
         if (userNode == null) {
             logger.warn("Login failed. Unknown username {} on site {}", identity.getUserId(), identity.getSiteKey());
             request.setAttribute(VALVE_RESULT, UNKNOWN_USER);
-        } else if (userNode.isRoot() || org.jahia.services.usermanager.JahiaUserManagerService.isGuest(userNode)) {
-            // both definitions come from core, and the asymmetry is core's: isRoot() compares the node
-            // identity, isGuest() the name
+        } else if (isNotResolvableThroughConnector(userNode)) {
             logger.warn("Login failed. User {} is not resolvable through an authentication connector.", userNode.getName());
             request.setAttribute(VALVE_RESULT, UNKNOWN_USER);
         } else {
@@ -154,6 +152,16 @@ public class SSOValve extends BaseAuthValve {
             logger.warn("User not found : {}", userNode.getPath());
             request.setAttribute(VALVE_RESULT, UNKNOWN_USER);
         }
+    }
+
+    /**
+     * The root account and {@code guest} sit outside the set of accounts an authentication connector
+     * resolves. Both definitions come from core, and the asymmetry is core's: {@code isRoot()} compares
+     * the node identity, {@code isGuest()} the name — which is why the latter is reached on the
+     * implementation class rather than on the {@link JahiaUserManagerService} API this valve holds.
+     */
+    private static boolean isNotResolvableThroughConnector(JCRUserNode userNode) {
+        return userNode.isRoot() || org.jahia.services.usermanager.JahiaUserManagerService.isGuest(userNode);
     }
 
     /**
