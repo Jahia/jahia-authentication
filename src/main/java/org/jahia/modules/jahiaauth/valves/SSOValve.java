@@ -70,7 +70,7 @@ public class SSOValve extends BaseAuthValve {
         String originalSessionId = request.getSession().getId();
         Map<String, Map<String, MappedProperty>> allMapperResult = jahiaAuthMapperService.getMapperResultsForSession(originalSessionId);
         // the site parameter gates whether the valve runs; its value scopes nothing — the site an
-        // account is resolved against comes from the cached mapper result (see lookupUser below)
+        // account is resolved against comes from the cached mapper result
         if (allMapperResult == null || !request.getParameterMap().containsKey("site")) {
             valveContext.invokeNext(context);
             return;
@@ -82,11 +82,23 @@ public class SSOValve extends BaseAuthValve {
             return;
         }
 
+        if (identity.getSiteKey() == null) {
+            // the site an account is resolved against is the one the connector is configured on, and
+            // executeMapper records it on every entry it caches. An entry without it comes from
+            // somewhere else — a connector seeding the cache directly, or a previous version of the
+            // bundle whose entries are still live — and resolving it at server level instead would
+            // answer differently for that same entry once a current connector has re-cached it.
+            logger.warn("Login failed. The cached identity for {} carries no site key.", identity.getUserId());
+            request.setAttribute(VALVE_RESULT, UNKNOWN_USER);
+            valveContext.invokeNext(context);
+            return;
+        }
+
         boolean ok = false;
-        JCRUserNode userNode = lookupUser(identity);
+        JCRUserNode userNode = jahiaUserManagerService.lookupUser(identity.getUserId(), identity.getSiteKey());
 
         if (userNode == null) {
-            logger.warn("Login failed. Unknown username {}", identity.getUserId());
+            logger.warn("Login failed. Unknown username {} on site {}", identity.getUserId(), identity.getSiteKey());
             request.setAttribute(VALVE_RESULT, UNKNOWN_USER);
         } else if (userNode.isRoot() || org.jahia.services.usermanager.JahiaUserManagerService.isGuest(userNode)) {
             // both definitions come from core, and the asymmetry is core's: isRoot() compares the node
@@ -141,14 +153,6 @@ public class SSOValve extends BaseAuthValve {
             logger.warn("User not found : {}", userNode.getPath());
             request.setAttribute(VALVE_RESULT, UNKNOWN_USER);
         }
-    }
-
-    private JCRUserNode lookupUser(SsoIdentity identity) {
-        // the site the connector is configured on scopes the lookup; with none recorded, only
-        // server-level users are reachable
-        return identity.getSiteKey() != null
-                ? jahiaUserManagerService.lookupUser(identity.getUserId(), identity.getSiteKey())
-                : jahiaUserManagerService.lookupUser(identity.getUserId());
     }
 
     /**
