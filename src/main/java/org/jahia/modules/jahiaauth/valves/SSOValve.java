@@ -26,6 +26,7 @@ import javax.security.auth.login.AccountLockedException;
 import javax.security.auth.login.AccountNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
+import java.util.Objects;
 
 @Component(service = Valve.class, immediate = true)
 public class SSOValve extends BaseAuthValve {
@@ -156,25 +157,43 @@ public class SSOValve extends BaseAuthValve {
     }
 
     /**
-     * Reads the login id and its site key from a single mapper result, so both describe the same
-     * connector.
+     * Reads the identity the session authenticated as: a login id and the site key it is resolved
+     * against, taken from one and the same mapper result so both describe the same connector.
      * <p>
      * A session holds one cached result per mapper, so several may carry a login id — one per
-     * connector the session authenticated through. The first one found wins, and the map is unordered,
-     * so which one that is is not defined; each is an identity the session did authenticate as.
+     * connector the session authenticated through. They have to agree: two that name different
+     * accounts, or the same account on different sites, leave no defined identity to sign in, and
+     * picking one of them would come down to the iteration order of an unordered map. No account is
+     * resolved in that case.
      *
      * @param allMapperResult the mapper results cached for the session
-     * @return the identity to log in, or {@code null} when no mapper result holds a login id
+     * @return the identity to log in, {@code null} when no mapper result holds a login id or when the
+     *         results hold more than one identity
      */
     static SsoIdentity findIdentity(Map<String, Map<String, MappedProperty>> allMapperResult) {
+        SsoIdentity identity = null;
         for (Map<String, MappedProperty> mapperResult : allMapperResult.values()) {
-            MappedProperty login = mapperResult.get(JahiaAuthConstants.SSO_LOGIN);
-            if (login != null && login.getValue() != null) {
-                MappedProperty site = mapperResult.get(JahiaAuthConstants.SITE_KEY);
-                return new SsoIdentity((String) login.getValue(), site != null ? (String) site.getValue() : null);
+            SsoIdentity candidate = identityOf(mapperResult);
+            if (candidate == null) {
+                continue;
             }
+            if (identity != null && !identity.equals(candidate)) {
+                logger.warn("Login failed. The session authenticated as several identities ({} and {}), so none is resolved.",
+                        identity, candidate);
+                return null;
+            }
+            identity = candidate;
         }
-        return null;
+        return identity;
+    }
+
+    private static SsoIdentity identityOf(Map<String, MappedProperty> mapperResult) {
+        MappedProperty login = mapperResult.get(JahiaAuthConstants.SSO_LOGIN);
+        if (login == null || login.getValue() == null) {
+            return null;
+        }
+        MappedProperty site = mapperResult.get(JahiaAuthConstants.SITE_KEY);
+        return new SsoIdentity((String) login.getValue(), site != null ? (String) site.getValue() : null);
     }
 
     static final class SsoIdentity {
@@ -192,6 +211,28 @@ public class SSOValve extends BaseAuthValve {
 
         String getSiteKey() {
             return siteKey;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof SsoIdentity)) {
+                return false;
+            }
+            SsoIdentity other = (SsoIdentity) o;
+            return Objects.equals(userId, other.userId) && Objects.equals(siteKey, other.siteKey);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(userId, siteKey);
+        }
+
+        @Override
+        public String toString() {
+            return userId + "@" + siteKey;
         }
     }
 }

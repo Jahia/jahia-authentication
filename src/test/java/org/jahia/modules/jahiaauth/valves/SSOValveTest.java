@@ -43,9 +43,7 @@ public class SSOValveTest {
     @Test
     public void shouldPairTheLoginIdWithTheSiteKeyOfItsOwnMapperResult() {
         // Several connectors may have cached a result for the same session, and only some of them carry
-        // a login id. Exactly one does here, so the expected pair is defined whatever the iteration
-        // order: the LinkedHashMap is for readability only — the real map is an unordered HashMap, and
-        // which entry wins when SEVERAL carry a login id is deliberately not specified.
+        // a login id. Exactly one does here, so the site key of the other one is never the answer.
         Map<String, Map<String, MappedProperty>> allMapperResult = new LinkedHashMap<>();
         allMapperResult.put("profileMapper", mapperResult(null, "otherSite"));
         allMapperResult.put("jcrOAuthProvider", mapperResult("jdoe", "digitall"));
@@ -54,6 +52,48 @@ public class SSOValveTest {
 
         assertEquals("jdoe", identity.getUserId());
         assertEquals("digitall", identity.getSiteKey());
+    }
+
+    @Test
+    public void shouldFindTheIdentitySeveralMapperResultsAgreeOn() {
+        // one cached result per mapper, both fed by the same connector: same account, same site
+        Map<String, Map<String, MappedProperty>> allMapperResult = new LinkedHashMap<>();
+        allMapperResult.put("jcrOAuthProvider", mapperResult("jdoe", "digitall"));
+        allMapperResult.put("profileMapper", mapperResult("jdoe", "digitall"));
+
+        SSOValve.SsoIdentity identity = SSOValve.findIdentity(allMapperResult);
+
+        assertEquals("jdoe", identity.getUserId());
+        assertEquals("digitall", identity.getSiteKey());
+    }
+
+    @Test
+    public void shouldFindNoIdentityWhenTwoMapperResultsNameDifferentAccounts() {
+        Map<String, Map<String, MappedProperty>> allMapperResult = new LinkedHashMap<>();
+        allMapperResult.put("jcrOAuthProvider", mapperResult("jdoe", "digitall"));
+        allMapperResult.put("samlMapper", mapperResult("asmith", "digitall"));
+
+        assertNull(SSOValve.findIdentity(allMapperResult));
+    }
+
+    @Test
+    public void shouldFindNoIdentityWhenTwoMapperResultsNameTheSameAccountOnDifferentSites() {
+        // the pick used to be undefined either way; pairing the site with the login id is what makes
+        // the outcome differ rather than just the route to it, so the ambiguity is refused
+        Map<String, Map<String, MappedProperty>> allMapperResult = new LinkedHashMap<>();
+        allMapperResult.put("jcrOAuthProvider", mapperResult("jdoe", "digitall"));
+        allMapperResult.put("samlMapper", mapperResult("jdoe", "otherSite"));
+
+        assertNull(SSOValve.findIdentity(allMapperResult));
+    }
+
+    @Test
+    public void shouldFindNoIdentityWhenOnlyOneOfTwoMapperResultsCarriesASiteKey() {
+        Map<String, Map<String, MappedProperty>> allMapperResult = new LinkedHashMap<>();
+        allMapperResult.put("jcrOAuthProvider", mapperResult("jdoe", "digitall"));
+        allMapperResult.put("samlMapper", mapperResult("jdoe", null));
+
+        assertNull(SSOValve.findIdentity(allMapperResult));
     }
 
     @Test
