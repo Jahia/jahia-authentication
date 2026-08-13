@@ -18,6 +18,15 @@ public class SSOValveTest {
         return new MappedProperty(new MappedPropertyInfo(name, "string", null, false), value);
     }
 
+    /** The results two connectors cached for one and the same session. */
+    private static Map<String, Map<String, MappedProperty>> bothOf(Map<String, MappedProperty> oauth,
+                                                                   Map<String, MappedProperty> saml) {
+        Map<String, Map<String, MappedProperty>> allMapperResult = new LinkedHashMap<>();
+        allMapperResult.put("jcrOAuthProvider", oauth);
+        allMapperResult.put("samlMapper", saml);
+        return allMapperResult;
+    }
+
     private static Map<String, MappedProperty> mapperResult(String loginId, String siteKey) {
         Map<String, MappedProperty> result = new HashMap<>();
         if (loginId != null) {
@@ -68,32 +77,18 @@ public class SSOValveTest {
     }
 
     @Test
-    public void shouldFindNoIdentityWhenTwoMapperResultsNameDifferentAccounts() {
-        Map<String, Map<String, MappedProperty>> allMapperResult = new LinkedHashMap<>();
-        allMapperResult.put("jcrOAuthProvider", mapperResult("jdoe", "digitall"));
-        allMapperResult.put("samlMapper", mapperResult("asmith", "digitall"));
+    public void shouldFindNoIdentityWhenMapperResultsDisagree() {
+        // the pick used to be undefined whichever way the results differed; pairing the site with the
+        // login id is what makes the outcome differ rather than just the route to it. Each shape below
+        // is a session two connectors describe differently, and none of them resolves an account.
+        Map<String, MappedProperty> reference = mapperResult("jdoe", "digitall");
 
-        assertNull(SSOValve.findIdentity(allMapperResult));
-    }
-
-    @Test
-    public void shouldFindNoIdentityWhenTwoMapperResultsNameTheSameAccountOnDifferentSites() {
-        // the pick used to be undefined either way; pairing the site with the login id is what makes
-        // the outcome differ rather than just the route to it, so the ambiguity is refused
-        Map<String, Map<String, MappedProperty>> allMapperResult = new LinkedHashMap<>();
-        allMapperResult.put("jcrOAuthProvider", mapperResult("jdoe", "digitall"));
-        allMapperResult.put("samlMapper", mapperResult("jdoe", "otherSite"));
-
-        assertNull(SSOValve.findIdentity(allMapperResult));
-    }
-
-    @Test
-    public void shouldFindNoIdentityWhenOnlyOneOfTwoMapperResultsCarriesASiteKey() {
-        Map<String, Map<String, MappedProperty>> allMapperResult = new LinkedHashMap<>();
-        allMapperResult.put("jcrOAuthProvider", mapperResult("jdoe", "digitall"));
-        allMapperResult.put("samlMapper", mapperResult("jdoe", null));
-
-        assertNull(SSOValve.findIdentity(allMapperResult));
+        assertNull("two results naming different accounts",
+                SSOValve.findIdentity(bothOf(reference, mapperResult("asmith", "digitall"))));
+        assertNull("two results naming one account on different sites",
+                SSOValve.findIdentity(bothOf(reference, mapperResult("jdoe", "otherSite"))));
+        assertNull("one of the two results carrying no site key",
+                SSOValve.findIdentity(bothOf(reference, mapperResult("jdoe", null))));
     }
 
     @Test
