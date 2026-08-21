@@ -67,10 +67,6 @@
 
     <properties>
         <export-package>org.jahia.modules.jahiaauth.service,org.jahia.modules.jahiaauth.action,org.jahia.modules.jahiaauth.tag</export-package>
-        <!-- default=8.7.0: the version of the default module shipped with Jahia 8.2.0.0, the oldest
-             platform this module's manifest accepts (Jahia-Required-Version 8.2.3.0 gates on 8.2 <= v < 9).
-             Every later 8.2.x ships default >= 8.8.0, so the requirement resolves on the whole range. -->
-        <jahia-depends>default=8.7.0</jahia-depends>
         <jahia-static-resources>/css,/javascript,/icons</jahia-static-resources>
         <jahia-module-signature>MCwCFHdv28Pc4KanNEedrmOGle9GIhlkAhQgx3ekiAZQx3kd1i613lmgbAfyzQ==</jahia-module-signature>
         <jahia.modules.importPackage>!com.hazelcast.config,!com.hazelcast.core</jahia.modules.importPackage>
