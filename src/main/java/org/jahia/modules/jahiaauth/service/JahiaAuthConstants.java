@@ -51,9 +51,31 @@ package org.jahia.modules.jahiaauth.service;
 public class JahiaAuthConstants {
     public static final String JAHIA_AUTH_USER_CACHE = "JahiaAuthUserCache";
     public static final String SSO_LOGIN = "ssoLoginId";
+    /**
+     * The subject the identity provider asserted, as the connector declared it.
+     * <p>
+     * It travels through a mapper result beside the login id, and it is not a mapping: the
+     * connector names the property carrying it, and a configuration cannot name another one. The
+     * login id is the name of the account and is freely chosen, so the subject is what resolves
+     * the account.
+     */
+    public static final String SSO_SUBJECT = "ssoSubject";
     public static final String SITE_KEY = "siteKey";
     public static final String MAPPER_SERVICE_NAME = "mapperServiceName";
     public static final String MAPPERS_NODE_NAME = "mappers";
+
+    /** The node type of one link between an account and the identity a provider asserted. */
+    public static final String SSO_IDENTITY_LINK_TYPE = "authnt:ssoIdentityLink";
+    /**
+     * The node type holding the links of one account. It carries the access control list that grants
+     * nobody, and it is the node an account is authorized to hold: the grant a module needs to place a
+     * child under a user node names this type.
+     */
+    public static final String SSO_IDENTITY_LINKS_TYPE = "authnt:ssoIdentityLinks";
+    /** The name of that node under the account. */
+    public static final String SSO_IDENTITY_LINKS_NODE = "ssoIdentityLinks";
+    public static final String PROPERTY_CONNECTOR_NAME = "connectorName";
+    public static final String PROPERTY_SUBJECT = "subject";
 
     public static final String PROPERTY_IS_ENABLED = "enabled";
 

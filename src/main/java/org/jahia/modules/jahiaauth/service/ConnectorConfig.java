@@ -30,7 +30,16 @@ public class ConnectorConfig {
         for (String subValueKey : mappersValues.getSubValueKeys()) {
             Settings.Values mapper = mappersValues.getSubValues(subValueKey);
 
-            JSONArray mappingsJson = new JSONArray(mapper.getProperty(JahiaAuthConstants.PROPERTY_MAPPING));
+            // One unreadable mapper does not hide the others. An earlier version let the failure end the
+            // loop, so the mappers after it were absent from the configuration without a word.
+            JSONArray mappingsJson;
+            try {
+                mappingsJson = new JSONArray(mapper.getProperty(JahiaAuthConstants.PROPERTY_MAPPING));
+            } catch (JSONException e) {
+                logger.warn("Mapper {} of connector {} states no readable mapping, and is skipped.",
+                        subValueKey, getConnectorName(), e);
+                continue;
+            }
 
             Map<String, Mapping> mappingsMap = new HashMap<>();
 
@@ -50,7 +59,7 @@ public class ConnectorConfig {
                 mappingsMap.put(mapping.getMappedProperty(), mapping);
             }
 
-            MapperConfig mapperConfig = new MapperConfig(subValueKey, mapper);
+            MapperConfig mapperConfig = new MapperConfig(subValueKey, getConnectorName(), mapper);
             mapperConfig.setSiteKey(settings.getSiteKey());
             mapperConfig.setActive(mapper.getBooleanProperty(JahiaAuthConstants.PROPERTY_IS_ENABLED));
             mapperConfig.getMappings().addAll(mappingsMap.values());

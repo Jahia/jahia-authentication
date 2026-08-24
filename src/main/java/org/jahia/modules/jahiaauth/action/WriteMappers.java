@@ -55,6 +55,9 @@ import org.jahia.services.render.RenderContext;
 import org.jahia.services.render.Resource;
 import org.jahia.services.render.URLResolver;
 import org.json.JSONException;
+import org.jahia.modules.jahiaauth.impl.ServiceFilter;
+import org.jahia.modules.jahiaauth.impl.VerifiedSubjectCheck;
+import org.jahia.osgi.BundleUtils;
 import org.json.JSONObject;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -105,9 +108,18 @@ public class WriteMappers extends Action {
             return new ActionResult(HttpServletResponse.SC_BAD_REQUEST, null, response);
         }
 
-        Settings settings = settingsService.getSettings(renderContext.getSite().getSiteKey());
-
         JsonNode mapping = (parameters.hasNonNull(JahiaAuthConstants.PROPERTY_MAPPING)) ? parameters.get(JahiaAuthConstants.PROPERTY_MAPPING) : new ArrayNode(JsonNodeFactory.instance);
+
+        // Check before anything changes. The settings object this action reads is the live one, so a
+        // check that ran after the change would compare the new state against itself, and Config Admin
+        // undoes nothing when it refuses a configuration later on its own thread.
+        String refusal = refusalReason(connectorServiceName);
+        if (refusal != null) {
+            response.put(ERROR, refusal);
+            return new ActionResult(HttpServletResponse.SC_BAD_REQUEST, null, response);
+        }
+
+        Settings settings = settingsService.getSettings(renderContext.getSite().getSiteKey());
 
         Settings.Values mappersNode = settings.getValues(connectorServiceName).getSubValues(JahiaAuthConstants.MAPPERS_NODE_NAME).getSubValues(mapperServiceName);
 
@@ -128,5 +140,23 @@ public class WriteMappers extends Action {
     @Reference
     public void setSettingsService(SettingsService settingsService) {
         this.settingsService = settingsService;
+    }
+
+    /**
+     * @return why no sign-in through this connector would resolve an account, or {@code null} when one
+     *         would
+     */
+    private static String refusalReason(String connectorServiceName) {
+        ConnectorService connectorService = BundleUtils.getOsgiService(ConnectorService.class,
+                ServiceFilter.byName(JahiaAuthConstants.CONNECTOR_SERVICE_NAME, connectorServiceName));
+        if (connectorService == null) {
+            // The connector is not deployed, so nothing here can state what it verifies.
+            return null;
+        }
+        // The mappings are not read. A mapping feeds the name of the account and profile properties,
+        // and the account is resolved by the identity the provider asserted, so no mapping chooses an
+        // account any more. What the screen still answers is a connector that asserts no identity.
+        return VerifiedSubjectCheck.refusalReason(connectorServiceName,
+                connectorService.getVerifiedSubjectProperty());
     }
 }
