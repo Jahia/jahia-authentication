@@ -20,7 +20,10 @@
             angular.forEach(properties, function(property) {
                 propertiesAsString += '&properties=' + property;
             });
-            return $http.get(jahiaContext.basePreview + jahiaContext.sitePath + '.readConnectorsSettingsAction.do?connectorServiceName=' + nodeName + propertiesAsString);
+            // POST, not GET: the fetch metadata policy only refuses a cross-site request that writes,
+            // so the method is what brings this read under it. The action accepts POST only, so the
+            // method cannot be downgraded back to GET by a caller outside this service.
+            return $http.post(jahiaContext.basePreview + jahiaContext.sitePath + '.readConnectorsSettingsAction.do?connectorServiceName=' + nodeName + propertiesAsString);
         }
 
         function setConnectorData(data, options) {
