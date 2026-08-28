@@ -1,5 +1,6 @@
 package org.jahia.modules.jahiaauth.service;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 /**
@@ -15,5 +16,5 @@ public interface ConnectorResultProcessor {
     /**
      * The implementation of the ConnectorResultProcessor execution.
      */
-    void execute(ConnectorConfig connectorConfig, Map<String, Object> results);
+    void execute(HttpServletRequest httpRequest, ConnectorConfig connectorConfig, Map<String, Object> results);
 }

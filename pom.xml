@@ -54,7 +54,7 @@
 
     <artifactId>jahia-authentication</artifactId>
     <name>Jahia Authentication</name>
-    <version>2.1.0-SNAPSHOT</version>
+    <version>3.0.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <description>This is the custom module (Jahia OAuth) for running on a Digital Experience Manager server.</description>
 
@@ -68,7 +68,7 @@
     <properties>
         <export-package>org.jahia.modules.jahiaauth.service,org.jahia.modules.jahiaauth.action,org.jahia.modules.jahiaauth.tag</export-package>
         <jahia-static-resources>/css,/javascript,/icons</jahia-static-resources>
-        <jahia-module-signature>MCwCFHdv28Pc4KanNEedrmOGle9GIhlkAhQgx3ekiAZQx3kd1i613lmgbAfyzQ==</jahia-module-signature>
+        <jahia-module-signature>MCwCFHyAg592pIftPAHkxTMI59MyIQH7AhQj6vtm7xiN/5qi6M9g8i17u3+z7g==</jahia-module-signature>
         <jahia.modules.importPackage>!com.hazelcast.config,!com.hazelcast.core</jahia.modules.importPackage>
         <sonar.sources>src/main/resources/javascript</sonar.sources>
         <yarn.arguments>build:production</yarn.arguments>
@@ -127,6 +127,12 @@
             <artifactId>osgi.cmpn</artifactId>
             <version>${osgi.compendium.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

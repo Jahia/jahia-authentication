@@ -119,18 +119,36 @@ public class SettingsServiceImpl implements SettingsService, ManagedServiceFacto
             settings = new Settings();
             settingsByPid.put(pid, settings);
             settings.setSettingsService(this);
-            settings.update(getMap(properties));
-        } else {
-            settings.update(getMap(properties));
-            Set<String> connectors = settings.getValues(null).getSubValueKeys();
-            for (String connector : connectors) {
-                ConnectorService connectorService = BundleUtils
-                        .getOsgiService(ConnectorService.class, "(" + JahiaAuthConstants.CONNECTOR_SERVICE_NAME + "=" + connector + ")");
-                try {
-                    connectorService.validateSettings(new ConnectorConfig(settings, connector));
-                } catch (Exception e) {
-                    logger.error("Cannot validate settings", e);
-                }
+        }
+        settings.update(getMap(properties));
+        validateSettings(settings);
+    }
+
+    /**
+     * Asks every deployed connector to check its own settings.
+     * <p>
+     * A refusal is logged and nothing is undone, because Config Admin writes the file before it calls
+     * this method and it undoes nothing when this method raises. Nothing here decides which account a
+     * sign-in resolves, for that reason. That decision is made where the login id is read, so a
+     * configuration this method cannot refuse still resolves no account.
+     * <p>
+     * An earlier version emptied the mapping of the offending mapper here. That left the file on disk
+     * unchanged, so the refusal replayed on every restart, and it disabled a mapper an administrator
+     * could not see had been disabled.
+     */
+    private void validateSettings(Settings settings) {
+        for (String connector : settings.getValues(null).getSubValueKeys()) {
+            ConnectorService connectorService = BundleUtils.getOsgiService(ConnectorService.class,
+                    ServiceFilter.byName(JahiaAuthConstants.CONNECTOR_SERVICE_NAME, connector));
+            if (connectorService == null) {
+                // The connector module is not deployed yet, and its configuration file is. Config
+                // Admin calls this method again when the module registers its service.
+                continue;
+            }
+            try {
+                connectorService.validateSettings(new ConnectorConfig(settings, connector));
+            } catch (Exception e) {
+                logger.error("Cannot validate settings", e);
             }
         }
     }

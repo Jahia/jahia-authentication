@@ -7,18 +7,29 @@ import java.util.List;
 public class MapperConfig {
 
     private String mapperName;
+    private String connectorName;
     private String siteKey;
     private boolean active;
     private List<Mapping> mappings = new ArrayList<>();
     private Settings.Values values;
 
-    public MapperConfig(String mapperName, Settings.Values values) {
+    public MapperConfig(String mapperName, String connectorName, Settings.Values values) {
         this.mapperName = mapperName;
+        this.connectorName = connectorName;
         this.values = values;
     }
 
     public String getMapperName() {
         return mapperName;
+    }
+
+    /**
+     * @return the connector this mapper reads from. The connector names the property carrying the
+     *         subject its identity provider verified, and the framework needs that name where it reads
+     *         the login id out of a mapper result.
+     */
+    public String getConnectorName() {
+        return connectorName;
     }
 
     public String getSiteKey() {

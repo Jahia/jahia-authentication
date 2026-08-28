@@ -1,9 +1,27 @@
 <jmix = 'http://www.jahia.org/jahia/mix/1.0'>
 <jnt = 'http://www.jahia.org/jahia/nt/1.0'>
 <mix = 'http://www.jcp.org/jcr/mix/1.0'>
+<authnt = 'http://www.jahia.org/jahia/authnt/1.0'>
 
 [jnt:authConnectorSiteSettings] > jnt:content, jmix:siteComponent, jmix:studioOnly
 
 [jmix:authConnectorSettingView] > jmix:siteComponent, jmix:studioOnly mixin
 
 [jmix:authMapperSettingView] > jmix:siteComponent, jmix:studioOnly mixin
+
+// The identities the identity providers asserted for one account, and the account a sign-in resolves
+// through each of them.
+//
+// A link is a child of the account rather than a property of it. The container carries the access
+// control list, it grants nobody, and a system session is the only reader. It is excluded from the
+// live workspace and from import and export as well, so the routes that answer with user data answer
+// without it.
+//
+// An account holds zero or more links, one per connector. Two providers may assert the same subject
+// string, so a subject is stored beside the connector that asserted it and neither value stands alone.
+[authnt:ssoIdentityLinks] > jmix:nolive, jmix:noImportExport
+ + * (authnt:ssoIdentityLink)
+
+[authnt:ssoIdentityLink] > nt:base, mix:created
+ - connectorName (string) mandatory
+ - subject (string) mandatory

@@ -1,0 +1,8 @@
+# Do not edit - Configuration file provided by module, any change will be lost
+---
+jahia_authentication_sso_identity_links:
+  grants:
+  - api: "user.child.authnt:ssoIdentityLinks"
+  auto_apply:
+  - always: "true"
+  description: "Allows an account to carry the identities its identity providers asserted"
