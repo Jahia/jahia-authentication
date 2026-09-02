@@ -117,6 +117,12 @@ public class SSOValve extends BaseAuthValve {
                 .sessionValidityCheckEnabled(false)
                 // pass the "remember me" flag
                 .shouldRememberMe(rememberMe).build();
+        // Published BEFORE authenticating, and this order is the whole point. authenticate() replaces the session
+        // and publishes the login event synchronously from inside itself, so the re-key below - which cannot run
+        // any earlier, the new id not existing yet - lands after every consumer of that event has already asked
+        // for the mapper results of a session that has none. This is how they find the ones cached for this flow.
+        request.setAttribute(JahiaAuthConstants.PRE_AUTHENTICATION_SESSION_ID, originalSessionId);
+
         try {
             authenticationService.authenticate(userNode.getPath(), authenticationOptions, authContext.getRequest(),
                     authContext.getResponse());
