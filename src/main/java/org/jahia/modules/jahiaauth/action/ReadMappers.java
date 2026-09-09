@@ -78,6 +78,7 @@ public class ReadMappers extends Action {
     @Activate
     public void activate() {
         setName("readMappersAction");
+        setRequiredMethods("POST");
         setRequiredPermission("canSetupJahiaAuth");
     }
 

@@ -76,7 +76,7 @@ public class ReadConnectorsSettings extends Action {
     @Activate
     public void activate() {
         setName("readConnectorsSettingsAction");
-        setRequiredMethods("GET");
+        setRequiredMethods("POST");
         setRequiredPermission("canSetupJahiaAuth");
     }
 

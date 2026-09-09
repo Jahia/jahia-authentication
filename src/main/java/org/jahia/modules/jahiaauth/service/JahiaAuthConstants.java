@@ -50,6 +50,22 @@ package org.jahia.modules.jahiaauth.service;
  */
 public class JahiaAuthConstants {
     public static final String JAHIA_AUTH_USER_CACHE = "JahiaAuthUserCache";
+
+    /**
+     * Request attribute naming the session id a login's mapper results are cached under, published by the SSO
+     * valve before it authenticates.
+     * <p>
+     * It exists because the login event cannot be answered without it. {@code AuthenticationService.authenticate}
+     * replaces the session - it invalidates the old one and creates another - and publishes the login event
+     * synchronously from inside itself, so a consumer of that event asking for the mapper results of "this
+     * session" asks under an id nothing was ever cached under. This valve re-keys the entry onto the new id, but
+     * only after {@code authenticate} has returned, by which time every consumer has already run and answered
+     * empty. Reading this attribute is how a consumer finds the entry that belongs to the login it is handling.
+     * <p>
+     * Deliberately the id as this server issued it, never {@code getRequestedSessionId()}: the latter is whatever
+     * the client sent, so a consumer keying a cache read on it could be pointed at another session's entry.
+     */
+    public static final String PRE_AUTHENTICATION_SESSION_ID = "org.jahia.modules.jahiaauth.preAuthenticationSessionId";
     public static final String SSO_LOGIN = "ssoLoginId";
     public static final String SITE_KEY = "siteKey";
     public static final String MAPPER_SERVICE_NAME = "mapperServiceName";
