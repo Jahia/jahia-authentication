@@ -70,7 +70,6 @@
         <jahia-static-resources>/css,/javascript,/icons</jahia-static-resources>
         <jahia-module-signature>MC0CFE1k2axsdwxNG14JCXAU6H8/5EefAhUAhzD5VTR1oq7Qm6ceQEb2wqXTl/I=</jahia-module-signature>
         <jahia.modules.importPackage>!com.hazelcast.config,!com.hazelcast.core</jahia.modules.importPackage>
-        <sonar.sources>src/main/resources/javascript</sonar.sources>
         <yarn.arguments>build:production</yarn.arguments>
     </properties>
 
